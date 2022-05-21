@@ -36,7 +36,7 @@ You could download datasets from [RecSysDatasets](https://github.com/RUCAIBox/Re
 
 Our implementation of DIF-SR is based on Recbole. You can run the experiments using following commands:
 ```bash
-python main.py --config_file amazon_config.ini
+python run_recbole.py --model=SASRecD --dataset='Amazon_Sports_and_Outdoors' --config_files='configs/Amazon_Sports_and_Outdoors.yaml'
 ```
 
 ### Results
