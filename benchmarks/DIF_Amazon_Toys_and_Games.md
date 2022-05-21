@@ -40,13 +40,13 @@ python run_recbole.py --model=SASRecD --dataset='Amazon_Toys_and_Games' --config
 ```
 
 ### Results
-Recall@20 = 0.1382
+Recall@20 = 0.138
 
-NDCG@20 = 0.0597
+NDCG@20 = 0.0596
 
 ### Logs
 ```bash
-18 Jan 11:18    INFO  
+06 Apr 14:06    INFO  
 General Hyper Parameters:
 gpu_id = 2
 use_gpu = True
@@ -60,7 +60,7 @@ save_dataloaders = False
 benchmark_filename = None
 
 Training Hyper Parameters:
-checkpoint_dir = saved/Amazon_Toys_and_Games/SASRecD_3_2_['categories']_[128]_concat_[5]_212
+checkpoint_dir = saved/Amazon_Toys_and_Games/SASRecD_3_4_['categories']_[64]_gate_[5]_50_2048_256_0.0001_212
 epochs = 200
 train_batch_size = 2048
 learner = adam
@@ -109,7 +109,7 @@ normalize_field = None
 normalize_all = None
 ITEM_LIST_LENGTH_FIELD = item_length
 LIST_SUFFIX = _list
-MAX_ITEM_LIST_LENGTH = 7
+MAX_ITEM_LIST_LENGTH = 50
 POSITION_FIELD = position_id
 HEAD_ENTITY_ID_FIELD = head_id
 TAIL_ENTITY_ID_FIELD = tail_id
@@ -120,7 +120,7 @@ Other Hyper Parameters:
 neg_sampling = None
 repeatable = True
 n_layers = 3
-n_heads = 2
+n_heads = 4
 hidden_size = 256
 inner_size = 256
 hidden_dropout_prob = 0.5
@@ -132,9 +132,9 @@ selected_features = ['categories']
 pooling_mode = sum
 loss_type = CE
 MODEL_TYPE = ModelType.SEQUENTIAL
-attribute_hidden_size = [128]
+attribute_hidden_size = [64]
 weight_sharing = not
-fusion_type = concat
+fusion_type = gate
 lamdas = [5]
 attribute_predictor = linear
 predictor_source = item
@@ -146,7 +146,7 @@ train_neg_sample_args = {'strategy': 'none'}
 eval_neg_sample_args = {'strategy': 'full', 'distribution': 'uniform'}
 
 
-18 Jan 11:19    INFO  Amazon_Toys_and_Games
+06 Apr 14:06    INFO  Amazon_Toys_and_Games
 The number of users: 19413
 Average actions of users: 8.633680197815783
 The number of items: 11925
@@ -154,11 +154,11 @@ Average actions of items: 14.055434417980543
 The number of inters: 167597
 The sparsity of the dataset: 99.92760389550713%
 Remain Fields: ['user_id', 'item_id', 'rating', 'timestamp', 'title', 'price', 'sales_type', 'sales_rank', 'brand', 'categories']
-18 Jan 11:19    INFO  [Training]: train_batch_size = [2048] negative sampling: [None]
-18 Jan 11:19    INFO  [Evaluation]: eval_batch_size = [256] eval_args: [{'split': {'LS': 'valid_and_test'}, 'group_by': 'user', 'order': 'TO', 'mode': 'full'}]
-18 Jan 11:19    INFO  SASRecD(
+06 Apr 14:06    INFO  [Training]: train_batch_size = [2048] negative sampling: [None]
+06 Apr 14:06    INFO  [Evaluation]: eval_batch_size = [256] eval_args: [{'split': {'LS': 'valid_and_test'}, 'group_by': 'user', 'order': 'TO', 'mode': 'full'}]
+06 Apr 14:06    INFO  SASRecD(
   (item_embedding): Embedding(11925, 256, padding_idx=0)
-  (position_embedding): Embedding(7, 256)
+  (position_embedding): Embedding(50, 256)
   (feature_embed_layer_list): ModuleList(
     (0): FeatureSeqEmbLayer()
   )
@@ -172,12 +172,18 @@ Remain Fields: ['user_id', 'item_id', 'rating', 'timestamp', 'title', 'price', '
           (query_p): Linear(in_features=256, out_features=256, bias=True)
           (key_p): Linear(in_features=256, out_features=256, bias=True)
           (query_layers): ModuleList(
-            (0): Linear(in_features=128, out_features=128, bias=True)
+            (0): Linear(in_features=64, out_features=64, bias=True)
           )
           (key_layers): ModuleList(
-            (0): Linear(in_features=128, out_features=128, bias=True)
+            (0): Linear(in_features=64, out_features=64, bias=True)
           )
-          (fusion_layer): Linear(in_features=21, out_features=7, bias=True)
+          (fusion_layer): VanillaAttention(
+            (projection): Sequential(
+              (0): Linear(in_features=50, out_features=50, bias=True)
+              (1): ReLU(inplace=True)
+              (2): Linear(in_features=50, out_features=1, bias=True)
+            )
+          )
           (attn_dropout): Dropout(p=0.3, inplace=False)
           (dense): Linear(in_features=256, out_features=256, bias=True)
           (LayerNorm): LayerNorm((256,), eps=1e-12, elementwise_affine=True)
@@ -198,12 +204,18 @@ Remain Fields: ['user_id', 'item_id', 'rating', 'timestamp', 'title', 'price', '
           (query_p): Linear(in_features=256, out_features=256, bias=True)
           (key_p): Linear(in_features=256, out_features=256, bias=True)
           (query_layers): ModuleList(
-            (0): Linear(in_features=128, out_features=128, bias=True)
+            (0): Linear(in_features=64, out_features=64, bias=True)
           )
           (key_layers): ModuleList(
-            (0): Linear(in_features=128, out_features=128, bias=True)
+            (0): Linear(in_features=64, out_features=64, bias=True)
           )
-          (fusion_layer): Linear(in_features=21, out_features=7, bias=True)
+          (fusion_layer): VanillaAttention(
+            (projection): Sequential(
+              (0): Linear(in_features=50, out_features=50, bias=True)
+              (1): ReLU(inplace=True)
+              (2): Linear(in_features=50, out_features=1, bias=True)
+            )
+          )
           (attn_dropout): Dropout(p=0.3, inplace=False)
           (dense): Linear(in_features=256, out_features=256, bias=True)
           (LayerNorm): LayerNorm((256,), eps=1e-12, elementwise_affine=True)
@@ -224,12 +236,18 @@ Remain Fields: ['user_id', 'item_id', 'rating', 'timestamp', 'title', 'price', '
           (query_p): Linear(in_features=256, out_features=256, bias=True)
           (key_p): Linear(in_features=256, out_features=256, bias=True)
           (query_layers): ModuleList(
-            (0): Linear(in_features=128, out_features=128, bias=True)
+            (0): Linear(in_features=64, out_features=64, bias=True)
           )
           (key_layers): ModuleList(
-            (0): Linear(in_features=128, out_features=128, bias=True)
+            (0): Linear(in_features=64, out_features=64, bias=True)
           )
-          (fusion_layer): Linear(in_features=21, out_features=7, bias=True)
+          (fusion_layer): VanillaAttention(
+            (projection): Sequential(
+              (0): Linear(in_features=50, out_features=50, bias=True)
+              (1): ReLU(inplace=True)
+              (2): Linear(in_features=50, out_features=1, bias=True)
+            )
+          )
           (attn_dropout): Dropout(p=0.3, inplace=False)
           (dense): Linear(in_features=256, out_features=256, bias=True)
           (LayerNorm): LayerNorm((256,), eps=1e-12, elementwise_affine=True)
@@ -252,51 +270,28 @@ Remain Fields: ['user_id', 'item_id', 'rating', 'timestamp', 'title', 'price', '
   (loss_fct): CrossEntropyLoss()
   (attribute_loss_fct): BCEWithLogitsLoss()
 )
-Trainable parameters: 4924328
+Trainable parameters: 4868565
 SASRecD
 ['configs/config_d_Amazon_Toys_and_Games.yaml', 'configs/config_training.yaml', 'configs/config_m_SASRecD.yaml']
 
-Train     0:   0%|                                                           | 0/54 [00:00<?, ?it/s]total_loss:12.974088668823242	item_loss:9.444479942321777	attribute_categories_loss:0.7059217095375061
+Train     0:   0%|                                                           | 0/54 [00:00<?, ?it/s]total_loss:12.964221000671387	item_loss:9.435752868652344	attribute_categories_loss:0.7056936621665955
 
-Train     0:   0%|                                  | 0/54 [00:00<?, ?it/s, GPU RAM: 1.40 G/23.70 G]
-Train     0:   2%|▍                         | 1/54 [00:00<00:26,  2.01it/s, GPU RAM: 1.40 G/23.70 G]total_loss:12.973123550415039	item_loss:9.445937156677246	attribute_categories_loss:0.7054372429847717
+Train     0:   0%|                                  | 0/54 [00:00<?, ?it/s, GPU RAM: 8.29 G/23.70 G]
+Train     0:   2%|▍                         | 1/54 [00:00<00:15,  3.49it/s, GPU RAM: 8.29 G/23.70 G]total_loss:12.969597816467285	item_loss:9.443338394165039	attribute_categories_loss:0.705251932144165
 
-Train     0:   2%|▍                         | 1/54 [00:00<00:26,  2.01it/s, GPU RAM: 1.84 G/23.70 G]
-Train     0:   4%|▉                         | 2/54 [00:00<00:15,  3.41it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.96281623840332	item_loss:9.438323020935059	attribute_categories_loss:0.7048985958099365
+Train     0:   2%|▍                         | 1/54 [00:00<00:15,  3.49it/s, GPU RAM: 8.29 G/23.70 G]
+Train     0:   4%|▉                         | 2/54 [00:00<00:13,  3.88it/s, GPU RAM: 8.29 G/23.70 G]total_loss:12.981012344360352	item_loss:9.456283569335938	attribute_categories_loss:0.7049456834793091
 
-Train     0:   4%|▉                         | 2/54 [00:00<00:15,  3.41it/s, GPU RAM: 1.84 G/23.70 G]
-Train     0:   6%|█▍                        | 3/54 [00:00<00:10,  4.73it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.964868545532227	item_loss:9.442314147949219	attribute_categories_loss:0.7045109868049622
+Train     0:   4%|▉                         | 2/54 [00:00<00:13,  3.88it/s, GPU RAM: 8.29 G/23.70 G]
+Train     0:   6%|█▍                        | 3/54 [00:00<00:12,  4.03it/s, GPU RAM: 8.29 G/23.70 G]total_loss:12.965948104858398	item_loss:9.44483470916748	attribute_categories_loss:0.7042227983474731
 
-Train     0:   6%|█▍                        | 3/54 [00:00<00:10,  4.73it/s, GPU RAM: 1.84 G/23.70 G]
-Train     0:   7%|█▉                        | 4/54 [00:00<00:09,  5.29it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.960132598876953	item_loss:9.439766883850098	attribute_categories_loss:0.7040732502937317
-
-Train     0:   7%|█▉                        | 4/54 [00:00<00:09,  5.29it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.960346221923828	item_loss:9.443694114685059	attribute_categories_loss:0.7033304572105408
-
-Train     0:   7%|█▉                        | 4/54 [00:01<00:09,  5.29it/s, GPU RAM: 1.84 G/23.70 G]
-Train     0:  11%|██▉                       | 6/54 [00:01<00:07,  6.64it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.941118240356445	item_loss:9.427778244018555	attribute_categories_loss:0.7026680111885071
-
-Train     0:  11%|██▉                       | 6/54 [00:01<00:07,  6.64it/s, GPU RAM: 1.84 G/23.70 G]
-Train     0:  13%|███▎                      | 7/54 [00:01<00:06,  7.25it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.952522277832031	item_loss:9.440581321716309	attribute_categories_loss:0.7023882865905762
-
-Train     0:  13%|███▎                      | 7/54 [00:01<00:06,  7.25it/s, GPU RAM: 1.84 G/23.70 G]
-Train     0:  15%|███▊                      | 8/54 [00:01<00:06,  7.42it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.941692352294922	item_loss:9.434090614318848	attribute_categories_loss:0.7015202641487122
-
-Train     0:  15%|███▊                      | 8/54 [00:01<00:06,  7.42it/s, GPU RAM: 1.84 G/23.70 G]
-Train     0:  17%|████▎                     | 9/54 [00:01<00:05,  7.78it/s, GPU RAM: 1.84 G/23.70 G]total_loss:12.953174591064453	item_loss:9.448530197143555	attribute_categories_loss:0.7009289860725403
+Train     0:   6%|█▍                        | 3/54 [00:00<00:12,  4.03it/s, GPU RAM: 8.29 G/23.70 G]
+Train     0:   7%|█▉                        | 4/54 [00:01<00:12,  4.09it/s, GPU RAM: 8.29 G/23.70 G]total_loss:12.958413124084473	item_loss:9.440451622009277	attribute_categories_loss:0.7035923600196838
 ...
-Evaluate   :  93%|███████████████████████▎ | 71/76 [00:09<00:00,  7.47it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  93%|███████████████████████▎ | 71/76 [00:09<00:00,  7.47it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  95%|███████████████████████▋ | 72/76 [00:09<00:00,  6.83it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  95%|███████████████████████▋ | 72/76 [00:09<00:00,  6.83it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  96%|████████████████████████ | 73/76 [00:09<00:00,  6.90it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  96%|████████████████████████ | 73/76 [00:09<00:00,  6.90it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  97%|████████████████████████▎| 74/76 [00:09<00:00,  6.91it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  97%|████████████████████████▎| 74/76 [00:09<00:00,  6.91it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  99%|████████████████████████▋| 75/76 [00:09<00:00,  6.87it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   :  99%|████████████████████████▋| 75/76 [00:09<00:00,  6.87it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   : 100%|█████████████████████████| 76/76 [00:09<00:00,  6.95it/s, GPU RAM: 1.85 G/23.70 G]
-Evaluate   : 100%|█████████████████████████| 76/76 [00:09<00:00,  7.70it/s, GPU RAM: 1.85 G/23.70 G]
-18 Jan 12:06    INFO  best valid : {'recall@5': 0.082, 'recall@10': 0.1207, 'recall@20': 0.1632, 'ndcg@5': 0.0466, 'ndcg@10': 0.0591, 'ndcg@20': 0.0698}
-18 Jan 12:06    INFO  test result: {'recall@5': 0.0683, 'recall@10': 0.1013, 'recall@20': 0.1382, 'ndcg@5': 0.0397, 'ndcg@10': 0.0504, 'ndcg@20': 0.0597}
-
+Evaluate   :  88%|██████████████████████   | 67/76 [00:00<00:00, 77.78it/s, GPU RAM: 8.31 G/23.70 G]
+Evaluate   :  99%|████████████████████████▋| 75/76 [00:00<00:00, 77.61it/s, GPU RAM: 8.31 G/23.70 G]
+Evaluate   :  99%|████████████████████████▋| 75/76 [00:00<00:00, 77.61it/s, GPU RAM: 8.31 G/23.70 G]
+Evaluate   : 100%|█████████████████████████| 76/76 [00:00<00:00, 78.11it/s, GPU RAM: 8.31 G/23.70 G]
+06 Apr 14:52    INFO  best valid : {'recall@5': 0.0825, 'recall@10': 0.1199, 'recall@20': 0.1623, 'ndcg@5': 0.0473, 'ndcg@10': 0.0593, 'ndcg@20': 0.07}
+06 Apr 14:52    INFO  test result: {'recall@5': 0.0705, 'recall@10': 0.1005, 'recall@20': 0.138, 'ndcg@5': 0.0406, 'ndcg@10': 0.0502, 'ndcg@20': 0.0596}
 ```

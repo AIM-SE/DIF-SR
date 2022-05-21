@@ -57,7 +57,7 @@ Run `DIF.sh`.
 See _benchmarks_ folder to reproduce the results.
 For example, we show the detailed reproduce steps for the results of DIF-SR on the Amazon Beauty dataset in DIF_Amazon_Beauty.md file.
 
-Due to some stochastic factors, It's necessary to slightly tune the hyper-parameters using grid search. If you have any question, please issue the project or email us and we will reply you soon.
+Due to some stochastic factors, slightly tuning the hyper-parameters using grid search is necessary if you want to reproduce the performance. If you have any question, please issue the project or email us and we will reply you soon.
 
 ## Cite
 

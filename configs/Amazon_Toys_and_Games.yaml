@@ -14,7 +14,7 @@ save_dataloaders: False
 load_col:
     inter: [user_id, item_id, rating, timestamp]
     item: ['item_id','title','sales_rank','price','brand','categories','sales_type']
-MAX_ITEM_LIST_LENGTH: 7
+MAX_ITEM_LIST_LENGTH: 50
 USER_ID_FIELD: user_id
 ITEM_ID_FIELD: item_id
 RATING_FIELD: rating
@@ -28,9 +28,9 @@ item_inter_num_interval: "[5,inf)"
 
 # Model
 n_layers: 3
-n_heads: 2
+n_heads: 4
 hidden_size: 256
-attribute_hidden_size: [128]
+attribute_hidden_size: [64]
 inner_size: 256
 hidden_dropout_prob: 0.5
 attn_dropout_prob: 0.3
@@ -41,15 +41,15 @@ selected_features: ['categories']
 pooling_mode: 'sum'
 loss_type: 'CE'
 weight_sharing: 'not'
-fusion_type: 'concat'
+fusion_type: 'gate'
 lamdas: [5]
 attribute_predictor: 'linear'
 
 # training settings
-epochs: 100
-train_batch_size: 256
+epochs: 200
+train_batch_size: 2048
 learner: adam
-learning_rate: 0.001
+learning_rate: 0.0001
 eval_step: 2
 stopping_step: 10
 clip_grad_norm: ~
@@ -68,6 +68,6 @@ metrics: ["Recall","NDCG"]
 topk: [3,5,10,20]
 valid_metric: Recall@20
 valid_metric_bigger: True
-eval_batch_size: 128
+eval_batch_size: 256
 loss_decimal_place: 4
 metric_decimal_place: 4
