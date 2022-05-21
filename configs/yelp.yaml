@@ -14,7 +14,7 @@ save_dataloaders: False
 load_col:
     inter: [review_id, user_id, business_id, stars, useful, funny, cool, date]
     item: ['business_id','item_name','address','city','state','postal_code','latitude','longitude','item_stars','item_review_count','is_open','categories']
-MAX_ITEM_LIST_LENGTH: 10
+MAX_ITEM_LIST_LENGTH: 50
 USER_ID_FIELD: user_id
 ITEM_ID_FIELD: business_id
 RATING_FIELD: stars
@@ -28,7 +28,7 @@ item_inter_num_interval: "[5,inf)"
 
 # Model
 n_layers: 4
-n_heads: 2
+n_heads: 8
 hidden_size: 256
 attribute_hidden_size: [64]
 inner_size: 256
@@ -46,10 +46,10 @@ lamdas: [10]
 attribute_predictor: 'linear'
 
 # training settings
-epochs: 100
-train_batch_size: 256
+epochs: 200
+train_batch_size: 2048
 learner: adam
-learning_rate: 0.001
+learning_rate: 0.0001
 eval_step: 2
 stopping_step: 10
 clip_grad_norm: ~
@@ -68,6 +68,6 @@ metrics: ["Recall","NDCG"]
 topk: [3,5,10,20]
 valid_metric: Recall@20
 valid_metric_bigger: True
-eval_batch_size: 128
+eval_batch_size: 256
 loss_decimal_place: 4
 metric_decimal_place: 4
