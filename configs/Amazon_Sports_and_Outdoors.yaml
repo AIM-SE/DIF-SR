@@ -1,0 +1,73 @@
+# general
+gpu_id: 0
+use_gpu: True
+seed: 212
+state: INFO
+reproducibility: True
+data_path: 'dataset/'
+checkpoint_dir: 'saved'
+show_progress: True
+save_dataset: False
+save_dataloaders: False
+
+# dataset
+load_col:
+    inter: [user_id, item_id, rating, timestamp]
+    item: ['item_id','title','sales_rank','price','brand','categories','sales_type']
+MAX_ITEM_LIST_LENGTH: 7
+USER_ID_FIELD: user_id
+ITEM_ID_FIELD: item_id
+RATING_FIELD: rating
+TIME_FIELD: timestamp
+
+# Filtering
+val_interval: ~
+filter_inter_by_user_or_item: True
+user_inter_num_interval: "[5,inf)"
+item_inter_num_interval: "[5,inf)"
+
+# Model
+n_layers: 4
+n_heads: 2
+hidden_size: 256
+attribute_hidden_size: [256]
+inner_size: 256
+hidden_dropout_prob: 0.5
+attn_dropout_prob: 0.3
+hidden_act: 'gelu'
+layer_norm_eps: 1e-12
+initializer_range: 0.02
+selected_features: ['categories']
+pooling_mode: 'sum'
+loss_type: 'CE'
+weight_sharing: 'not'
+fusion_type: 'gate'
+lamdas: [5]
+attribute_predictor: 'linear'
+
+# training settings
+epochs: 100
+train_batch_size: 256
+learner: adam
+learning_rate: 0.001
+eval_step: 2
+stopping_step: 10
+clip_grad_norm: ~
+weight_decay: 0.0
+neg_sampling:
+
+# evaluation settings
+eval_args:
+  split: { 'LS': 'valid_and_test' }
+  group_by: user
+  order: TO
+  mode: full
+
+repeatable: True
+metrics: ["Recall","NDCG"]
+topk: [3,5,10,20]
+valid_metric: Recall@20
+valid_metric_bigger: True
+eval_batch_size: 128
+loss_decimal_place: 4
+metric_decimal_place: 4
