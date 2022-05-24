@@ -28,7 +28,7 @@ item_inter_num_interval: "[5,inf)"
 
 # Model
 n_layers: 4
-n_heads: 4
+n_heads: 8
 hidden_size: 256
 attribute_hidden_size: [64]
 inner_size: 256
