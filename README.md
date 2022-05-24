@@ -14,7 +14,7 @@ attribute predictors are also utilized upon the final representation
 in a multi-task training scheme to promote the interaction of side
 information and item representation.
 
-![avatar](dif.PNG)
+![avatar](dif.png)
 
 ## Preparation
 
