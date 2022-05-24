@@ -63,13 +63,12 @@ Due to some stochastic factors, slightly tuning the hyper-parameters using grid 
 
 If you find this repo useful, please cite
 ```
-@article{DIF,
+@inproceedings{Xie2022DIF,
   author    = {Yueqi Xie and
                Peilin Zhou and
                Sunghun Kim},
   title     = {Decoupled Side Information Fusion for Sequential Recommendation},
-  journal   = {CoRR},
-  volume    = {abs/2204.11046},
+  book title= {International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)},
   year      = {2022}
 }
 ```
