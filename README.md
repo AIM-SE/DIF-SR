@@ -76,3 +76,6 @@ If you find this repo useful, please cite
 
 ## Credit
 This repo is based on [RecBole](https://github.com/RUCAIBox/RecBole).
+
+## Contact
+Feel free to contact us if there is any question. (YueqiXIE, yxieay@connect.ust.hk; Peilin Zhou, zhoupalin@gmail.com)
