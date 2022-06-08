@@ -68,7 +68,7 @@ If you find this repo useful, please cite
                Peilin Zhou and
                Sunghun Kim},
   title     = {Decoupled Side Information Fusion for Sequential Recommendation},
-  book title= {International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)},
+  booktitle= {International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR)},
   year      = {2022}
 }
 ```
