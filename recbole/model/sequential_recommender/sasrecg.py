@@ -23,7 +23,7 @@ from recbole.model.layers import TransformerEncoder
 from recbole.model.loss import BPRLoss
 
 
-class SASRec(SequentialRecommender):
+class SASRecG(SequentialRecommender):
     r"""
     SASRec is the first sequential recommender based on self-attentive mechanism.
 
@@ -34,7 +34,7 @@ class SASRec(SequentialRecommender):
     """
 
     def __init__(self, config, dataset):
-        super(SASRec, self).__init__(config, dataset)
+        super(SASRecG, self).__init__(config, dataset)
 
         # load parameters info
         self.n_layers = config['n_layers']
