@@ -82,7 +82,7 @@ class AbstractRecommender(nn.Module):
         for key, value in para.items():
             setattr(self, key, value)
 
-    def run_per_epoch(self):
+    def run_per_epoch(self, epoch):
         return None
 
     def __str__(self):
