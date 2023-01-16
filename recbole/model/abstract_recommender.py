@@ -109,6 +109,8 @@ class GeneralRecommender(AbstractRecommender):
 
         # load parameters info
         self.device = config['device']
+    def run_per_epoch(self):
+        return None
 
 
 class SequentialRecommender(AbstractRecommender):
