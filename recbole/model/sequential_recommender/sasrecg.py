@@ -50,6 +50,8 @@ class SASRecG(SequentialRecommender):
         self.initializer_range = config['initializer_range']
         self.loss_type = config['loss_type']
         self.attr_lamdas = config['attr_lamdas']
+        self.attr_loss = config['attr_loss']
+
         self.vis = config['vis'] > 0
 
         # define layers and loss
