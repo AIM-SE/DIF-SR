@@ -83,7 +83,7 @@ class SASRecR(SequentialRecommender):
         attribute = self.selected_features[0]
         attribute_count = len(dataset.field2token_id[attribute])
         self.n_attributes[attribute] = attribute_count
-        self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index]
+        self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index].to(self.device)
         attribute_count = max(self.item_attribute)
         self.attr_embedding = nn.Embedding(attribute_count+1, self.hidden_size, padding_idx=0)
         if self.attribute_predictor == 'MLP':
@@ -191,7 +191,6 @@ class SASRecR(SequentialRecommender):
             test_attr_emb = self.attr_embedding.weight
             attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
             attr_loss = self.loss_fct(attr_logits, self.item_attribute)
-            total_loss = loss + self.attr_lamdas * attr_loss
 
             # for i, a_predictor in enumerate(self.ap):
             #     attribute_logits = a_predictor(seq_output)
@@ -217,7 +216,7 @@ class SASRecR(SequentialRecommender):
                 # for key,value in loss_dic.items():
                 #     s += '{}_{:.4f}\t'.format(key,value.item())
                 # print(s)
-            return total_loss
+            return loss, self.attr_lamdas * attr_loss
 
     def predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]

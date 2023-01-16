@@ -75,7 +75,7 @@ class SASRecG(SequentialRecommender):
         attribute_count = len(dataset.field2token_id[attribute])
         attribute_count = len(dataset.field2token_id[attribute])
         self.n_attributes[attribute] = attribute_count
-        self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index]
+        self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index].to(self.device)
         attribute_count = max(self.item_attribute)
         self.attr_embedding = nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0)
 
@@ -155,9 +155,8 @@ class SASRecG(SequentialRecommender):
             test_attr_emb = self.attr_embedding.weight
             attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
             attr_loss = self.loss_fct(attr_logits, self.item_attribute)
-            total_loss = loss + self.attr_lamdas * attr_loss
 
-            return total_loss
+            return loss, self.attr_lamdas * attr_loss
 
     def predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
