@@ -45,6 +45,7 @@ class SASRecG(SequentialRecommender):
         self.attn_dropout_prob = config['attn_dropout_prob']
         self.hidden_act = config['hidden_act']
         self.layer_norm_eps = config['layer_norm_eps']
+        self.device = config['device']
 
         self.initializer_range = config['initializer_range']
         self.loss_type = config['loss_type']
