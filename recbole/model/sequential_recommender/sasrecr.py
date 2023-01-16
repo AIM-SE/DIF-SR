@@ -78,6 +78,7 @@ class SASRecR(SequentialRecommender):
         self.n_attributes = {}
         self.dataset = dataset
         self.attribute_map = []
+        self.attr_embeddings = []
         for attribute in self.selected_features:
             attribute_count = len(dataset.field2token_id[attribute])
             self.n_attributes[attribute] = attribute_count
