@@ -82,6 +82,9 @@ class AbstractRecommender(nn.Module):
         for key, value in para.items():
             setattr(self, key, value)
 
+    def run_per_epoch(self):
+        return None
+
     def __str__(self):
         """
         Model prints with number of trainable parameters
@@ -109,8 +112,7 @@ class GeneralRecommender(AbstractRecommender):
 
         # load parameters info
         self.device = config['device']
-    def run_per_epoch(self):
-        return None
+
 
 
 class SequentialRecommender(AbstractRecommender):
