@@ -162,6 +162,7 @@ class SASRecG(SequentialRecommender):
 
             if self.attr_loss == "predict":
                 attribute_logits = self.attr_layer(test_item_emb)
+                import pdb; pdb.set_trace()
                 attribute_labels = self.item_attribute
                 attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.n_attributes[
                     self.selected_features[0]])
