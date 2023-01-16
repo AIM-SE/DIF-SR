@@ -76,6 +76,7 @@ class SASRecG(SequentialRecommender):
         attribute_count = len(dataset.field2token_id[attribute])
         self.n_attributes[attribute] = attribute_count
         self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index]
+        import pdb; pdb.set_trace()
         attribute_count = max(self.item_attribute)
         self.attr_embedding = nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0)
 
