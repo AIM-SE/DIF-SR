@@ -67,6 +67,9 @@ class SASRecG(SequentialRecommender):
         self.LayerNorm = nn.LayerNorm(self.hidden_size, eps=self.layer_norm_eps)
         self.dropout = nn.Dropout(self.hidden_dropout_prob)
 
+        self.selected_features = config['selected_features']
+        self.attribute_reg_index = config['attribute_regi']
+
         attribute = self.selected_features[0]
         attribute_count = len(dataset.field2token_id[attribute])
         self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index]
