@@ -82,9 +82,9 @@ class SASRecG(SequentialRecommender):
         attrs = set(self.item_attribute.detach().cpu().numpy())
         attr_id_map = {}
         for i, attr in enumerate(attrs):
-            attr_id_map[torch.tensor(attr)] = i
+            attr_id_map[attr] = i
         for i in range(len(self.item_attribute)):
-            self.item_attribute[i] = attr_id_map[self.item_attribute[i].cpu()]
+            self.item_attribute[i] = attr_id_map[self.item_attribute[i].item()]
         self.attribute_count = len(attrs)
         print("number of categories:", self.attribute_count)
         self.attr_embedding = nn.Embedding(self.attribute_count + 1, self.hidden_size, padding_idx=0)
