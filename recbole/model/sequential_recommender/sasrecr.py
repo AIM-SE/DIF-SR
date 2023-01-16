@@ -186,7 +186,7 @@ class SASRecR(SequentialRecommender):
             test_item_emb = self.item_embedding.weight
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
-            test_attr_emb = self.attr_embeddings.weight
+            test_attr_emb = self.attr_embedding.weight
             import pdb; pdb.set_trace()
             attr_logits = torch.matmul(test_attr_emb, test_attr_emb.transpose(0, 1))
             attr_loss = self.loss_fct(attr_logits, self.item_attribute)
