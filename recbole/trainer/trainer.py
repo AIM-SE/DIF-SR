@@ -238,6 +238,7 @@ class Trainer(AbstractTrainer):
             self.optimizer.step()
             if self.gpu_available and show_progress:
                 iter_data.set_postfix_str(set_color('GPU RAM: ' + get_gpu_usage(self.device), 'yellow'))
+        self.model.run_per_epoch(epoch_idx)
         return total_loss
 
     def _valid_epoch(self, valid_data, show_progress=False):

@@ -115,6 +115,9 @@ class SASRecR(SequentialRecommender):
         self.apply(self._init_weights)
         self.other_parameter_name = ['feature_embed_layer_list']
 
+    def run_per_epoch(self, epoch):
+        self.vis_emb(self.item_embedding, epoch)
+
     def _init_weights(self, module):
         """ Initialize the weights """
         if isinstance(module, (nn.Linear, nn.Embedding)):

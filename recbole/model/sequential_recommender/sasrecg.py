@@ -50,6 +50,7 @@ class SASRecG(SequentialRecommender):
         self.initializer_range = config['initializer_range']
         self.loss_type = config['loss_type']
         self.attr_lamdas = config['attr_lamdas']
+        self.vis = config['vis']
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
@@ -117,6 +118,10 @@ class SASRecG(SequentialRecommender):
         extended_attention_mask = extended_attention_mask.to(dtype=next(self.parameters()).dtype)  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
         return extended_attention_mask
+
+    def run_per_epoch(self, epoch):
+        if self.vis:
+            self.vis_emb(self.item_embedding, epoch)
 
     def forward(self, item_seq, item_seq_len):
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
