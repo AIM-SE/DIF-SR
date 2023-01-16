@@ -130,6 +130,16 @@ class SequentialRecommender(AbstractRecommender):
         self.max_seq_length = config['MAX_ITEM_LIST_LENGTH']
         self.n_items = dataset.num(self.ITEM_ID)
 
+        self.label = []
+        self.name = config["model"]
+        self.item_cnt = dataset.counter(dataset.iid_field)
+        for item_k in range(self.n_items):
+            v = self.item_cnt[item_k]
+            v = max(v, 1)
+            nv = round(math.log(v))
+            self.label.append(nv)
+        print("max label", max(self.label))
+
 
     def vis_emb(self, emb, epoch):
         x_in = emb.weight.detach().cpu().numpy()
