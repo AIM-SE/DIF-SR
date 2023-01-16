@@ -50,7 +50,7 @@ class SASRecG(SequentialRecommender):
         self.initializer_range = config['initializer_range']
         self.loss_type = config['loss_type']
         self.attr_lamdas = config['attr_lamdas']
-        self.vis = config['vis']
+        self.vis = config['vis'] > 0
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)

@@ -53,7 +53,7 @@ class SASRecR(SequentialRecommender):
         self.attribute_predictor = config['attribute_predictor']
         self.attribute_reg_index = config['attribute_regi']
         self.attr_lamdas = config['attr_lamdas']
-        self.vis = config['vis']
+        self.vis = config['vis'] > 0
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
