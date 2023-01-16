@@ -51,6 +51,7 @@ class SASRecR(SequentialRecommender):
 
         self.lamdas = config['lamdas']
         self.attribute_predictor = config['attribute_predictor']
+        self.attribute_reg_index = config['attribute_regi']
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
@@ -78,13 +79,11 @@ class SASRecR(SequentialRecommender):
         self.n_attributes = {}
         self.dataset = dataset
         self.attribute_map = []
-        self.attr_embeddings = []
-        for attribute in self.selected_features:
-            attribute_count = len(dataset.field2token_id[attribute])
-            self.n_attributes[attribute] = attribute_count
-            self.attr_embeddings.append(nn.Embedding(attribute_count+1, self.hidden_size, padding_idx=0))
-            import pdb; pdb.set_trace()
-
+        attribute = self.selected_features[0]
+        attribute_count = len(dataset.field2token_id[attribute])
+        self.n_attributes[attribute] = attribute_count
+        self.attr_embedding = nn.Embedding(attribute_count+1, self.hidden_size, padding_idx=0)
+        self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index]
         if self.attribute_predictor == 'MLP':
             self.ap = nn.Sequential(nn.Linear(in_features=self.hidden_size,
                                                        out_features=self.hidden_size),
@@ -187,30 +186,32 @@ class SASRecR(SequentialRecommender):
             test_item_emb = self.item_embedding.weight
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
-            loss_dic = {'item_loss':loss}
-            attribute_loss_sum = 0
+            test_attr_emb = self.attr_embeddings.weight
+            import pdb; pdb.set_trace()
+            attr_logits = torch.matmul(test_attr_emb, test_attr_emb.transpose(0, 1))
+            attr_loss = self.loss_fct(attr_logits, self.item_attribute)
+            total_loss = loss + self.lamdas[0] * attr_loss
 
-            for i, a_predictor in enumerate(self.ap):
-                attribute_logits = a_predictor(seq_output)
-                attribute_labels = interaction.interaction[self.selected_features[i]]
-
-                attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.n_attributes[
-                    self.selected_features[i]])
-
-                if len(attribute_labels.shape) > 2:
-                    attribute_labels = attribute_labels.sum(dim=1)
-                attribute_labels = attribute_labels.float()
-                attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels)
-                attribute_loss = torch.mean(attribute_loss[:, 1:])
-                loss_dic[self.selected_features[i]] = attribute_loss
-            if self.num_feature_field == 1:
-                total_loss = loss + self.lamdas[0] * attribute_loss
-                # print('total_loss:{}\titem_loss:{}\tattribute_{}_loss:{}'.format(total_loss, loss,self.selected_features[0],attribute_loss))
-            else:
-                for i,attribute in enumerate(self.selected_features):
-                    attribute_loss_sum += self.lamdas[i] * loss_dic[attribute]
-                total_loss = loss + attribute_loss_sum
-                loss_dic['total_loss'] = total_loss
+            # for i, a_predictor in enumerate(self.ap):
+            #     attribute_logits = a_predictor(seq_output)
+            #     attribute_labels = interaction.interaction[self.selected_features[i]]
+            #
+            #     attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.n_attributes[
+            #         self.selected_features[i]])
+            #
+            #     if len(attribute_labels.shape) > 2:
+            #         attribute_labels = attribute_labels.sum(dim=1)
+            #     attribute_labels = attribute_labels.float()
+            #     attribute_loss = torch.mean(attribute_loss[:, 1:])
+            #     loss_dic[self.selected_features[i]] = attribute_loss
+            # if self.num_feature_field == 1:
+            #     total_loss = loss + self.lamdas[0] * attribute_loss
+            #     # print('total_loss:{}\titem_loss:{}\tattribute_{}_loss:{}'.format(total_loss, loss,self.selected_features[0],attribute_loss))
+            # else:
+            #     for i,attribute in enumerate(self.selected_features):
+            #         attribute_loss_sum += self.lamdas[i] * loss_dic[attribute]
+            #     total_loss = loss + attribute_loss_sum
+            #     loss_dic['total_loss'] = total_loss
                 # s = ''
                 # for key,value in loss_dic.items():
                 #     s += '{}_{:.4f}\t'.format(key,value.item())
