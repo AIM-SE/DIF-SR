@@ -43,6 +43,7 @@ loss_type: 'CE'
 fusion_type: 'gate'
 lamdas: [10]
 attr_lamdas: 0.2
+vis: 0
 attribute_predictor: 'linear'
 
 # training settings
