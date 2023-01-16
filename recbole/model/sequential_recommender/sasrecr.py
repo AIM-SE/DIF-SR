@@ -80,8 +80,8 @@ class SASRecR(SequentialRecommender):
         self.dataset = dataset
         self.attribute_map = []
         attribute = self.selected_features[0]
-        # attribute_count = len(dataset.field2token_id[attribute])
-        # self.n_attributes[attribute] = attribute_count
+        attribute_count = len(dataset.field2token_id[attribute])
+        self.n_attributes[attribute] = attribute_count
         self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index]
         attribute_count = max(self.item_attribute)
         self.attr_embedding = nn.Embedding(attribute_count+1, self.hidden_size, padding_idx=0)
