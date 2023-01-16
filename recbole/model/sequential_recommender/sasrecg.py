@@ -79,9 +79,16 @@ class SASRecG(SequentialRecommender):
         attribute_count = len(dataset.field2token_id[attribute])
         self.n_attributes[attribute] = attribute_count
         self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index].to(self.device)
-        attribute_count = max(self.item_attribute)
-        self.attr_embedding = nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0)
-        self.attr_layer = nn.Linear(in_features=self.hidden_size, out_features=attribute_count)
+        attrs = set(self.item_attribute.detach().cpu().numpy())
+        attr_id_map = {}
+        for i, attr in enumerate(attrs):
+            attr_id_map[attr] = i
+        for i in range(len(self.item_attribute)):
+            self.item_attribute[i] = attr_id_map[self.item_attribute[i]]
+        self.attribute_count = len(attrs)
+        print("number of categories:", self.attribute_count)
+        self.attr_embedding = nn.Embedding(self.attribute_count + 1, self.hidden_size, padding_idx=0)
+        self.attr_layer = nn.Linear(in_features=self.hidden_size, out_features=self.attribute_count)
         if self.loss_type == 'BPR':
             self.loss_fct = BPRLoss()
         elif self.loss_type == 'CE':
@@ -163,9 +170,8 @@ class SASRecG(SequentialRecommender):
             if self.attr_loss == "predict":
                 attribute_logits = self.attr_layer(test_item_emb)
                 import pdb; pdb.set_trace()
-                attribute_labels = self.item_attribute
-                attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.n_attributes[
-                    self.selected_features[0]])
+                attribute_labels = self.item_attribute.unsqueeze(1)
+                attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.attribute_count)
                 attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels)
                 attr_loss = torch.mean(attribute_loss)
             else:
