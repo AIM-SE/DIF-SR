@@ -70,8 +70,11 @@ class SASRecG(SequentialRecommender):
         self.selected_features = config['selected_features']
         self.attribute_reg_index = config['attribute_regi']
 
+        self.n_attributes = {}
         attribute = self.selected_features[0]
         attribute_count = len(dataset.field2token_id[attribute])
+        attribute_count = len(dataset.field2token_id[attribute])
+        self.n_attributes[attribute] = attribute_count
         self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index]
         attribute_count = max(self.item_attribute)
         self.attr_embedding = nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0)
