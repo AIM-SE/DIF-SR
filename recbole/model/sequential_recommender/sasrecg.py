@@ -55,7 +55,7 @@ class SASRecG(SequentialRecommender):
         self.attr_lamdas = config['attr_lamdas']
 
         if type(self.attr_lamdas) == int:
-            self.attr_lamda = [self.attr_lamda]
+            self.attr_lamdas = [self.attr_lamdas]
         if type(self.attribute_reg_indexs) == int:
             self.attribute_reg_indexs = [self.attribute_reg_indexs]
 
