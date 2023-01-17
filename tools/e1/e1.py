@@ -26,7 +26,7 @@ for k, v in grid.items():
         subp = '--' + k + '=' + str(vi)
         if k == 'dataset':
             # subp += ' --config_files=\"conf/config_d_' + vi + '.yaml conf/config_t_train.yaml '
-            subp += ' --config_files=\"configs/' + vi + '.yaml '
+            subp += ' --config_files=\"configs/' + vi + '.yaml\" '
         nparams += [p + ' ' + subp for p in params]
 
     params = nparams
@@ -42,7 +42,6 @@ for m in models:
         cmd += ' ' + p
         # cmd += 'configs/config_m_' + m + '.yaml\"'
         cmd += ' --gpu_id=$g'
-        cmd += ' --log_wandb=True'
         cmd += ' --model_id=' + str(i)
         cmd += ' --exp=' + exp
         cmd += ' > ' + log_dir + str(i) + '.log 2>&1'
