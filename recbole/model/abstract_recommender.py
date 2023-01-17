@@ -20,7 +20,13 @@ import torch.nn as nn
 
 from recbole.model.layers import FMEmbedding, FMFirstOrderLinear
 from recbole.utils import ModelType, InputType, FeatureSource, FeatureType, set_color
-
+from sklearn.manifold import TSNE
+from sklearn.datasets import load_iris, load_digits
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+import os, math
+from collections import defaultdict
+import torch.nn.functional as F
 
 class AbstractRecommender(nn.Module):
     r"""Base class for all models
@@ -76,6 +82,9 @@ class AbstractRecommender(nn.Module):
         for key, value in para.items():
             setattr(self, key, value)
 
+    def run_per_epoch(self, epoch):
+        return None
+
     def __str__(self):
         """
         Model prints with number of trainable parameters
@@ -105,6 +114,7 @@ class GeneralRecommender(AbstractRecommender):
         self.device = config['device']
 
 
+
 class SequentialRecommender(AbstractRecommender):
     """
     This is a abstract sequential recommender. All the sequential model should implement This class.
@@ -123,6 +133,44 @@ class SequentialRecommender(AbstractRecommender):
         self.NEG_ITEM_ID = config['NEG_PREFIX'] + self.ITEM_ID
         self.max_seq_length = config['MAX_ITEM_LIST_LENGTH']
         self.n_items = dataset.num(self.ITEM_ID)
+
+        self.label = []
+        self.name = config["model"]
+        self.item_cnt = dataset.counter(dataset.iid_field)
+        for item_k in range(self.n_items):
+            v = self.item_cnt[item_k]
+            v = max(v, 1)
+            nv = round(math.log(v))
+            self.label.append(nv)
+        print("max label", max(self.label))
+
+
+    def vis_emb(self, emb, epoch, labels=None, exp="pop"):
+        x_in = emb.weight.detach().cpu().numpy()
+        epoch = "{0:03d}".format(epoch)
+        X_tsne = TSNE(n_components=2, random_state=33).fit_transform(x_in)
+        plt.figure(figsize=(10, 10))
+        if labels is None:
+            labels = self.label
+        plt.scatter(
+            X_tsne[:, 0], X_tsne[:, 1], c=labels, label="Raw", s=15, cmap="coolwarm"
+        )
+        plt.legend()
+        plt.savefig("./images/" + self.name + "_t_" + exp + "_"+ epoch + ".png", dpi=120)
+
+        # x_inn = F.normalize(torch.tensor(np.array(x_in)), dim=1, p=2).numpy()
+        # X_tsne = TSNE(n_components=2, random_state=33).fit_transform(x_inn)
+        # plt.figure(figsize=(10, 10))
+        # plt.scatter(
+        #     X_tsne[:, 0],
+        #     X_tsne[:, 1],
+        #     c=self.label,
+        #     label="Norm",
+        #     s=15,
+        #     cmap="coolwarm",
+        # )
+        # plt.legend()
+        # plt.savefig("images/" + self.name + "_tsne_n_" +  exp + "_" + epoch + ".png", dpi=120)
 
     def gather_indexes(self, output, gather_index):
         """Gathers the vectors at the specific positions over a minibatch"""

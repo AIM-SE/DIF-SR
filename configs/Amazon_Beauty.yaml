@@ -42,6 +42,10 @@ pooling_mode: 'sum'
 loss_type: 'CE'
 fusion_type: 'gate'
 lamdas: [10]
+attr_lamdas: 1,1
+attr_regi: 1,2
+attr_loss: 'predict'
+vis: 0
 attribute_predictor: 'linear'
 
 # training settings

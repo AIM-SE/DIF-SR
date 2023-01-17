@@ -238,6 +238,7 @@ class Trainer(AbstractTrainer):
             self.optimizer.step()
             if self.gpu_available and show_progress:
                 iter_data.set_postfix_str(set_color('GPU RAM: ' + get_gpu_usage(self.device), 'yellow'))
+        self.model.run_per_epoch(epoch_idx)
         return total_loss
 
     def _valid_epoch(self, valid_data, show_progress=False):
@@ -737,7 +738,8 @@ class DecisionTreeTrainer(AbstractTrainer):
         temp_best_file = '{}-{}-temp-best.pth'.format(self.config['model'], get_local_time())
         self.temp_best_file = os.path.join(self.checkpoint_dir, temp_best_file)
 
-        saved_model_file = '{}-{}.pth'.format(self.config['model'], get_local_time())
+        # saved_model_file = '{}-{}.pth'.format(self.config['model'], get_local_time())
+        saved_model_file = '{}-{}-{}-{}.pth'.format(self.config['model'], get_local_time(), self.config['dataset'], self.config['model_id'])
         self.saved_model_file = os.path.join(self.checkpoint_dir, saved_model_file)
 
         self.stopping_step = config['stopping_step']
