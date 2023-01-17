@@ -72,23 +72,37 @@ class SASRecG(SequentialRecommender):
         self.dropout = nn.Dropout(self.hidden_dropout_prob)
 
         self.selected_features = config['selected_features']
-        self.attribute_reg_index = config['attribute_regi']
+        self.attribute_reg_indexs = [int(i) for i in config['attr_regi'].split(",")]
+        self.attr_lamdas = [float(i) for i in config['attr_lamdas'].split(",")]
+
 
         self.n_attributes = {}
         attribute = self.selected_features[0]
         attribute_count = len(dataset.field2token_id[attribute])
         self.n_attributes[attribute] = attribute_count
-        self.item_attribute = dataset.item_feat['categories'][:, self.attribute_reg_index].to(self.device)
-        attrs = set(self.item_attribute.detach().cpu().numpy())
-        attr_id_map = {}
-        for i, attr in enumerate(attrs):
-            attr_id_map[attr] = i
-        for i in range(len(self.item_attribute)):
-            self.item_attribute[i] = attr_id_map[self.item_attribute[i].item()]
-        self.attribute_count = len(attrs)
-        print("number of categories:", self.attribute_count)
-        self.attr_embedding = nn.Embedding(self.attribute_count + 1, self.hidden_size, padding_idx=0)
-        self.attr_layer = nn.Linear(in_features=self.hidden_size, out_features=self.attribute_count)
+        item_attributes = dataset.item_feat['categories'].to(self.device)
+
+        self.item_attributes = []
+        self.item_attribute_counts = []
+        attr_embeddings = []
+        attr_layers = []
+        for index in self.attribute_reg_indexs:
+            item_attribute = item_attributes[:, index]
+            attrs = set(item_attribute.detach().cpu().numpy())
+            attr_id_map = {}
+            for i, attr in enumerate(attrs):
+                attr_id_map[attr] = i
+            for i in range(len(item_attribute)):
+                item_attribute[i] = attr_id_map[item_attribute[i].item()]
+
+            attribute_count = len(attrs)
+            print("number of categories: index", index, attribute_count)
+            self.item_attribute_counts.append(attribute_count)
+            self.item_attributes.append(item_attribute)
+            attr_embeddings.append(nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0))
+            attr_layers.append(nn.Linear(in_features=self.hidden_size, out_features=attribute_count))
+        self.attr_embeddings = nn.ModuleList(attr_embeddings)
+        self.attr_layers = nn.ModuleList(attr_layers)
         if self.loss_type == 'BPR':
             self.loss_fct = BPRLoss()
         elif self.loss_type == 'CE':
@@ -166,19 +180,22 @@ class SASRecG(SequentialRecommender):
             test_item_emb = self.item_embedding.weight
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
+            losses = [loss]
 
             if self.attr_loss == "predict":
-                attribute_logits = self.attr_layer(test_item_emb)
-                attribute_labels = self.item_attribute
-                attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.attribute_count)
-                attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
-                attr_loss = torch.mean(attribute_loss)
+                for i, attr_layer in self.attr_layers:
+                    attribute_logits = attr_layer(test_item_emb)
+                    attribute_labels = self.item_attributes[i]
+                    attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.item_attribute_counts[i])
+                    attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
+                    attr_loss = torch.mean(attribute_loss)
+                    losses.append(self.attr_lamdas[i]*attr_loss)
             else:
                 test_attr_emb = self.attr_embedding.weight
                 attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
                 attr_loss = self.loss_fct(attr_logits, self.item_attribute)
 
-            return loss, self.attr_lamdas * attr_loss
+            return losses
 
     def predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
