@@ -91,7 +91,6 @@ class SASRecG(SequentialRecommender):
 
         self.item_attributes = []
         self.item_attribute_counts = []
-        attr_embeddings = []
         attr_layers = []
         attr_l0 = config['attr_l0']
         attr_l1 = config['attr_l1']
@@ -134,9 +133,7 @@ class SASRecG(SequentialRecommender):
             print("number of categories: index", index, attribute_count)
             self.item_attribute_counts.append(attribute_count)
             self.item_attributes.append(item_attribute)
-            attr_embeddings.append(nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0))
             attr_layers.append(nn.Linear(in_features=self.hidden_size, out_features=attribute_count))
-        self.attr_embeddings = nn.ModuleList(attr_embeddings)
         self.attr_layers = nn.ModuleList(attr_layers)
         if self.loss_type == 'BPR':
             self.loss_fct = BPRLoss()
