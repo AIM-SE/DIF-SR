@@ -409,6 +409,108 @@ class MultiHeadAttention(nn.Module):
 
         return hidden_states
 
+
+class MultiHeadPosAttention(nn.Module):
+    """
+    Multi-head Self-attention layers, a attention score dropout layer is introduced.
+
+    Args:
+        input_tensor (torch.Tensor): the input of the multi-head self-attention layer
+        attention_mask (torch.Tensor): the attention mask for input tensor
+
+    Returns:
+        hidden_states (torch.Tensor): the output of the multi-head self-attention layer
+
+    """
+
+    def __init__(self, n_heads, hidden_size, hidden_dropout_prob, attn_dropout_prob, layer_norm_eps, feat_num, max_len, fusion_type):
+        super(MultiHeadPosAttention, self).__init__()
+        if hidden_size % n_heads != 0:
+            raise ValueError(
+                "The hidden size (%d) is not a multiple of the number of attention "
+                "heads (%d)" % (hidden_size, n_heads)
+            )
+
+        self.num_attention_heads = n_heads
+        self.attention_head_size = int(hidden_size / n_heads)
+        self.all_head_size = self.num_attention_heads * self.attention_head_size
+
+        self.query = nn.Linear(hidden_size, self.all_head_size)
+        self.key = nn.Linear(hidden_size, self.all_head_size)
+        self.value = nn.Linear(hidden_size, self.all_head_size)
+
+        self.query_p = nn.Linear(hidden_size, self.all_head_size)
+        self.key_p = nn.Linear(hidden_size, self.all_head_size)
+
+        self.attn_dropout = nn.Dropout(attn_dropout_prob)
+
+        self.dense = nn.Linear(hidden_size, hidden_size)
+        self.LayerNorm = nn.LayerNorm(hidden_size, eps=layer_norm_eps)
+        self.out_dropout = nn.Dropout(hidden_dropout_prob)
+
+        self.feat_num = feat_num
+        self.max_len = max_len
+        self.fusion_type = fusion_type
+        if self.fusion_type == 'concat':
+            self.fusion_layer = nn.Linear(self.max_len * (2 + self.feat_num), self.max_len)
+        elif self.fusion_type == 'gate':
+            self.fusion_layer = VanillaAttention(self.max_len, self.max_len)
+
+    def transpose_for_scores(self, x):
+        new_x_shape = x.size()[:-1] + (self.num_attention_heads, self.attention_head_size)
+        x = x.view(*new_x_shape)
+        return x.permute(0, 2, 1, 3)
+
+    def forward(self, input_tensor, position_embedding, attention_mask):
+        mixed_query_layer = self.query(input_tensor)
+        mixed_key_layer = self.key(input_tensor)
+        mixed_value_layer = self.value(input_tensor)
+
+        query_layer = self.transpose_for_scores(mixed_query_layer)
+        key_layer = self.transpose_for_scores(mixed_key_layer)
+        value_layer = self.transpose_for_scores(mixed_value_layer)
+
+        pos_query_layer = self.transpose_for_scores(self.query_p(position_embedding))
+        pos_key_layer = self.transpose_for_scores(self.key_p(position_embedding))
+
+        # Take the dot product between "query" and "key" to get the raw attention scores.
+        attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
+        pos_scores = torch.matmul(pos_query_layer, pos_key_layer.transpose(-1, -2))
+
+        if self.fusion_type == 'sum':
+            attention_scores = attention_scores + pos_scores
+        elif self.fusion_type == 'concat':
+            attention_scores = torch.cat([attention_scores, pos_scores], dim=-1)
+            attention_scores = self.fusion_layer(attention_scores)
+        elif self.fusion_type == 'gate':
+            attention_scores = torch.cat(
+                [attention_scores.unsqueeze(-2), pos_scores.unsqueeze(-2)], dim=-2)
+            attention_scores, _ = self.fusion_layer(attention_scores)
+
+
+        attention_scores = attention_scores / math.sqrt(self.attention_head_size)
+        # Apply the attention mask is (precomputed for all layers in BertModel forward() function)
+        # [batch_size heads seq_len seq_len] scores
+        # [batch_size 1 1 seq_len]
+        attention_scores = attention_scores + attention_mask
+
+        # Normalize the attention scores to probabilities.
+        attention_probs = nn.Softmax(dim=-1)(attention_scores)
+        # This is actually dropping out entire tokens to attend to, which might
+        # seem a bit unusual, but is taken from the original Transformer paper.
+
+        attention_probs = self.attn_dropout(attention_probs)
+        context_layer = torch.matmul(attention_probs, value_layer)
+        context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
+        new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
+        context_layer = context_layer.view(*new_context_layer_shape)
+        hidden_states = self.dense(context_layer)
+        hidden_states = self.out_dropout(hidden_states)
+        hidden_states = self.LayerNorm(hidden_states + input_tensor)
+
+        return hidden_states
+
+
 class DIFMultiHeadAttention(nn.Module):
     """
     DIF Multi-head Self-attention layers, a attention score dropout layer is introduced.
@@ -614,6 +716,35 @@ class TransformerLayer(nn.Module):
         feedforward_output = self.feed_forward(attention_output)
         return feedforward_output
 
+class PosTransformerLayer(nn.Module):
+    """
+    One transformer layer consists of a multi-head self-attention layer and a point-wise feed-forward layer.
+
+    Args:
+        hidden_states (torch.Tensor): the input of the multi-head self-attention sublayer
+        attention_mask (torch.Tensor): the attention mask for the multi-head self-attention sublayer
+
+    Returns:
+        feedforward_output (torch.Tensor): The output of the point-wise feed-forward sublayer,
+                                           is the output of the transformer layer.
+
+    """
+
+    def __init__(
+        self, n_heads, hidden_size, intermediate_size, hidden_dropout_prob, attn_dropout_prob, hidden_act,
+        layer_norm_eps, feat_num, max_len, fusion_type
+    ):
+        super(PosTransformerLayer, self).__init__()
+        self.multi_head_attention = MultiHeadPosAttention(
+            n_heads, hidden_size, hidden_dropout_prob, attn_dropout_prob, layer_norm_eps, feat_num, max_len, fusion_type
+        )
+        self.feed_forward = FeedForward(hidden_size, intermediate_size, hidden_dropout_prob, hidden_act, layer_norm_eps)
+
+    def forward(self, hidden_states, pos_emb, attention_mask):
+        attention_output = self.multi_head_attention(hidden_states, pos_emb, attention_mask)
+        feedforward_output = self.feed_forward(attention_output)
+        return feedforward_output
+
 class DIFTransformerLayer(nn.Module):
     """
     One decoupled transformer layer consists of a decoupled multi-head self-attention layer and a point-wise feed-forward layer.
@@ -642,6 +773,7 @@ class DIFTransformerLayer(nn.Module):
         attention_output = self.multi_head_attention(hidden_states,attribute_embed,position_embedding, attention_mask)
         feedforward_output = self.feed_forward(attention_output)
         return feedforward_output
+
 
 class TransformerEncoder(nn.Module):
     r""" One TransformerEncoder consists of several TransformerLayers.
@@ -691,6 +823,62 @@ class TransformerEncoder(nn.Module):
         all_encoder_layers = []
         for layer_module in self.layer:
             hidden_states = layer_module(hidden_states, attention_mask)
+            if output_all_encoded_layers:
+                all_encoder_layers.append(hidden_states)
+        if not output_all_encoded_layers:
+            all_encoder_layers.append(hidden_states)
+        return all_encoder_layers
+
+
+class PosTransformerEncoder(nn.Module):
+    r""" One TransformerEncoder consists of several TransformerLayers.
+
+        - n_layers(num): num of transformer layers in transformer encoder. Default: 2
+        - n_heads(num): num of attention heads for multi-head attention layer. Default: 2
+        - hidden_size(num): the input and output hidden size. Default: 64
+        - inner_size(num): the dimensionality in feed-forward layer. Default: 256
+        - hidden_dropout_prob(float): probability of an element to be zeroed. Default: 0.5
+        - attn_dropout_prob(float): probability of an attention score to be zeroed. Default: 0.5
+        - hidden_act(str): activation function in feed-forward layer. Default: 'gelu'
+                      candidates: 'gelu', 'relu', 'swish', 'tanh', 'sigmoid'
+        - layer_norm_eps(float): a value added to the denominator for numerical stability. Default: 1e-12
+
+    """
+
+    def __init__(
+        self,
+        n_layers=2,
+        n_heads=2,
+        hidden_size=64,
+        inner_size=256,
+        hidden_dropout_prob=0.5,
+        attn_dropout_prob=0.5,
+        hidden_act='gelu',
+        layer_norm_eps=1e-12,
+        feat_num=1, max_len=None, fusion_type='sum'
+    ):
+
+        super(PosTransformerEncoder, self).__init__()
+        layer = PosTransformerLayer(
+            n_heads, hidden_size, inner_size, hidden_dropout_prob, attn_dropout_prob, hidden_act, layer_norm_eps, feat_num, max_len, fusion_type
+        )
+        self.layer = nn.ModuleList([copy.deepcopy(layer) for _ in range(n_layers)])
+
+    def forward(self, hidden_states, pos_emb, attention_mask, output_all_encoded_layers=True):
+        """
+        Args:
+            hidden_states (torch.Tensor): the input of the TransformerEncoder
+            attention_mask (torch.Tensor): the attention mask for the input hidden_states
+            output_all_encoded_layers (Bool): whether output all transformer layers' output
+
+        Returns:
+            all_encoder_layers (list): if output_all_encoded_layers is True, return a list consists of all transformer
+            layers' output, otherwise return a list only consists of the output of last transformer layer.
+
+        """
+        all_encoder_layers = []
+        for layer_module in self.layer:
+            hidden_states = layer_module(hidden_states, pos_emb, attention_mask)
             if output_all_encoded_layers:
                 all_encoder_layers.append(hidden_states)
         if not output_all_encoded_layers:
