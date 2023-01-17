@@ -145,7 +145,7 @@ class SequentialRecommender(AbstractRecommender):
         print("max label", max(self.label))
 
 
-    def vis_emb(self, emb, epoch, labels=None, exp="test"):
+    def vis_emb(self, emb, epoch, labels=None, exp="pop"):
         x_in = emb.weight.detach().cpu().numpy()
         epoch = "{0:03d}".format(epoch)
         X_tsne = TSNE(n_components=2, random_state=33).fit_transform(x_in)
