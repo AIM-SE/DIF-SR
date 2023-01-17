@@ -51,6 +51,8 @@ class SASRecG(SequentialRecommender):
         self.loss_type = config['loss_type']
         self.attr_lamdas = config['attr_lamdas']
         self.attr_loss = config['attr_loss']
+        self.selected_features = config['selected_features']
+        self.attribute_reg_indexs = config['attr_regi']
 
         self.vis = config['vis'] > 0
 
@@ -71,9 +73,8 @@ class SASRecG(SequentialRecommender):
         self.LayerNorm = nn.LayerNorm(self.hidden_size, eps=self.layer_norm_eps)
         self.dropout = nn.Dropout(self.hidden_dropout_prob)
 
-        self.selected_features = config['selected_features']
-        self.attribute_reg_indexs = [int(i) for i in config['attr_regi'].split(",")]
-        self.attr_lamdas = [float(i) for i in config['attr_lamdas'].split(",")]
+        # self.attribute_reg_indexs = [int(i) for i in config['attr_regi'].split(",")]
+        # self.attr_lamdas = [float(i) for i in config['attr_lamdas'].split(",")]
 
 
         self.n_attributes = {}
