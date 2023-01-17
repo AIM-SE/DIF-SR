@@ -152,7 +152,7 @@ class SASRecG(SequentialRecommender):
     def run_per_epoch(self, epoch):
         if self.vis:
             for i, label in enumerate(self.item_attributes):
-                self.vis_emb(self.item_embedding, epoch, exp=self.exp+"_cat"+str(i), labels=label.detach().numpy())
+                self.vis_emb(self.item_embedding, epoch, exp=self.exp+"_cat"+str(i), labels=label.detach().cpu().numpy())
 
     def forward(self, item_seq, item_seq_len):
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
