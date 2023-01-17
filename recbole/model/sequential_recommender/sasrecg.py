@@ -49,10 +49,15 @@ class SASRecG(SequentialRecommender):
 
         self.initializer_range = config['initializer_range']
         self.loss_type = config['loss_type']
-        self.attr_lamdas = config['attr_lamdas']
         self.attr_loss = config['attr_loss']
         self.selected_features = config['selected_features']
         self.attribute_reg_indexs = config['attr_regi']
+        self.attr_lamdas = config['attr_lamdas']
+
+        if type(self.attr_lamdas) == int:
+            self.attr_lamda = [self.attr_lamda]
+        if type(self.attribute_reg_indexs) == int:
+            self.attribute_reg_indexs = [self.attribute_reg_indexs]
 
         self.vis = config['vis'] > 0
 
