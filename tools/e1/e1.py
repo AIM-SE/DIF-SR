@@ -1,6 +1,7 @@
 import random
 import os
-log_dir = './e1/' # sasrec p new
+exp = 'e1'
+log_dir = './' + exp + '/' # sasrec p new
 gpu_id = 0
 i = 0
 group = 8 # 4
@@ -43,6 +44,7 @@ for m in models:
         cmd += ' --gpu_id=$g'
         cmd += ' --log_wandb=True'
         cmd += ' --model_id=' + str(i)
+        cmd += ' --exp=' + exp
         cmd += ' > ' + log_dir + str(i) + '.log 2>&1'
         cmds.append(cmd)
 
