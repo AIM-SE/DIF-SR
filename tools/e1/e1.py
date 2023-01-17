@@ -26,7 +26,7 @@ for k, v in grid.items():
         subp = '--' + k + '=' + str(vi)
         if k == 'dataset':
             # subp += ' --config_files=\"conf/config_d_' + vi + '.yaml conf/config_t_train.yaml '
-            subp += ' --config_files=\"conf/' + vi + '.yaml '
+            subp += ' --config_files=\"configs/' + vi + '.yaml '
         nparams += [p + ' ' + subp for p in params]
 
     params = nparams
@@ -40,7 +40,7 @@ for m in models:
         cmd = 'nohup python run_recbole.py'
         cmd += ' --model=' + m
         cmd += ' ' + p
-        cmd += 'conf/config_m_' + m + '.yaml\"'
+        # cmd += 'configs/config_m_' + m + '.yaml\"'
         cmd += ' --gpu_id=$g'
         cmd += ' --log_wandb=True'
         cmd += ' --model_id=' + str(i)
