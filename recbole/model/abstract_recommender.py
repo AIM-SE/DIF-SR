@@ -145,30 +145,32 @@ class SequentialRecommender(AbstractRecommender):
         print("max label", max(self.label))
 
 
-    def vis_emb(self, emb, epoch):
+    def vis_emb(self, emb, epoch, labels=None, exp="test"):
         x_in = emb.weight.detach().cpu().numpy()
         epoch = "{0:03d}".format(epoch)
         X_tsne = TSNE(n_components=2, random_state=33).fit_transform(x_in)
         plt.figure(figsize=(10, 10))
+        if labels is None:
+            labels = self.label
         plt.scatter(
-            X_tsne[:, 0], X_tsne[:, 1], c=self.label, label="Raw", s=15, cmap="coolwarm"
+            X_tsne[:, 0], X_tsne[:, 1], c=labels, label="Raw", s=15, cmap="coolwarm"
         )
         plt.legend()
-        plt.savefig("images/" + self.name + "_tsne_" + epoch + ".png", dpi=120)
+        plt.savefig("./images/" + self.name + "_t_" + exp + "_"+ epoch + ".png", dpi=120)
 
-        x_inn = F.normalize(torch.tensor(np.array(x_in)), dim=1, p=2).numpy()
-        X_tsne = TSNE(n_components=2, random_state=33).fit_transform(x_inn)
-        plt.figure(figsize=(10, 10))
-        plt.scatter(
-            X_tsne[:, 0],
-            X_tsne[:, 1],
-            c=self.label,
-            label="Norm",
-            s=15,
-            cmap="coolwarm",
-        )
-        plt.legend()
-        plt.savefig("images/" + self.name + "_tsne_n_" + epoch + ".png", dpi=120)
+        # x_inn = F.normalize(torch.tensor(np.array(x_in)), dim=1, p=2).numpy()
+        # X_tsne = TSNE(n_components=2, random_state=33).fit_transform(x_inn)
+        # plt.figure(figsize=(10, 10))
+        # plt.scatter(
+        #     X_tsne[:, 0],
+        #     X_tsne[:, 1],
+        #     c=self.label,
+        #     label="Norm",
+        #     s=15,
+        #     cmap="coolwarm",
+        # )
+        # plt.legend()
+        # plt.savefig("images/" + self.name + "_tsne_n_" +  exp + "_" + epoch + ".png", dpi=120)
 
     def gather_indexes(self, output, gather_index):
         """Gathers the vectors at the specific positions over a minibatch"""

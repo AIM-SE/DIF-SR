@@ -60,6 +60,7 @@ class SASRecG(SequentialRecommender):
             self.attribute_reg_indexs = [self.attribute_reg_indexs]
 
         self.vis = config['vis'] > 0
+        self.exp = config['exp']
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
@@ -150,7 +151,8 @@ class SASRecG(SequentialRecommender):
 
     def run_per_epoch(self, epoch):
         if self.vis:
-            self.vis_emb(self.item_embedding, epoch)
+            for i, label in self.item_attributes:
+                self.vis_emb(self.item_embedding, epoch, exp=self.exp+"i"+str(i), labels=label.detach().numpy())
 
     def forward(self, item_seq, item_seq_len):
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
