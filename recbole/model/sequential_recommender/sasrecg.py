@@ -93,14 +93,18 @@ class SASRecG(SequentialRecommender):
         self.item_attribute_counts = []
         attr_embeddings = []
         attr_layers = []
+        attr_l0 = config['attr_l0']
         attr_l1 = config['attr_l1']
         attr_l2 = config['attr_l2']
         attr_l3 = config['attr_l3']
         attr_l4 = config['attr_l4']
         attr_l5 = config['attr_l5']
-        if attr_l1 > 0 or attr_l2 > 0 or attr_l3 > 0 or attr_l4 > 0 or attr_l5 > 0:
+        if attr_l0 > 0 or attr_l1 > 0 or attr_l2 > 0 or attr_l3 > 0 or attr_l4 > 0 or attr_l5 > 0:
             self.attribute_reg_indexs = []
             self.attr_lamdas = []
+            if attr_l0 > 0:
+                self.attribute_reg_indexs.append(0)
+                self.attr_lamdas.append(attr_l0)
             if attr_l1 > 0:
                 self.attribute_reg_indexs.append(1)
                 self.attr_lamdas.append(attr_l1)
