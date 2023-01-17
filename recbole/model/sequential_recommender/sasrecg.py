@@ -195,7 +195,7 @@ class SASRecG(SequentialRecommender):
                 attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
                 attr_loss = self.loss_fct(attr_logits, self.item_attribute)
 
-            return losses
+            return tuple(losses)
 
     def predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
