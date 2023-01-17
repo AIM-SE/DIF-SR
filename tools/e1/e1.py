@@ -8,8 +8,11 @@ group = 8 # 4
 print("use start i as ", i)
 grid = {
     'n_layers': [2],
-    'attr_lamdas': [1,2],
-    'attr_regi': [1,2],
+    'attr_l1': [0.1, 0.5, 1, 2],
+    'attr_l2': [0.1, 0.5, 1, 2],
+    'attr_l3': [0.1, 0.5, 1, 2],
+    'attr_l4': [0.1, 0.5, 1, 2],
+    'attr_l5': [0.1, 0.5, 1, 2],
 
     # @todo Dataset params should be the last in this map
     # @todo Pls don't change this rule
