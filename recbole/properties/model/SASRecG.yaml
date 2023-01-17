@@ -16,3 +16,9 @@ fusion_type: 'concat'
 lamdas: [10]
 attribute_predictor: 'linear'
 attribute_regi: 1
+attr_lamdas: 2
+attr_l1: 0
+attr_l2: 0
+attr_l3: 0
+attr_l4: 0
+attr_l5: 0
