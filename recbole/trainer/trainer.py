@@ -738,7 +738,8 @@ class DecisionTreeTrainer(AbstractTrainer):
         temp_best_file = '{}-{}-temp-best.pth'.format(self.config['model'], get_local_time())
         self.temp_best_file = os.path.join(self.checkpoint_dir, temp_best_file)
 
-        saved_model_file = '{}-{}.pth'.format(self.config['model'], get_local_time())
+        # saved_model_file = '{}-{}.pth'.format(self.config['model'], get_local_time())
+        saved_model_file = '{}-{}-{}-{}.pth'.format(self.config['model'], get_local_time(), self.config['dataset'], self.config['model_id'])
         self.saved_model_file = os.path.join(self.checkpoint_dir, saved_model_file)
 
         self.stopping_step = config['stopping_step']
