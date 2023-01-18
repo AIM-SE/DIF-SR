@@ -7,8 +7,8 @@ i = 0
 group = 8 # 4
 print("use start i as ", i)
 grid = {
-    'attr_l1': [0, 0.5, 1, 2],
-    'attr_l2': [0, 0.5, 1, 2],
+    'attr_l1': [0, 1, 2],
+    'attr_l2': [0, 0.5],
     'attr_l3': [0, 0.5],
     'attr_l4': [0, 0.5],
     'attr_l5': [0, 0.5],
