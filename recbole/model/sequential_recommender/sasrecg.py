@@ -167,6 +167,7 @@ class SASRecG(SequentialRecommender):
         elif self.loss_type == 'CE':
             self.loss_fct = nn.CrossEntropyLoss()
             self.attribute_loss_fct = nn.BCEWithLogitsLoss(reduction='none')
+            self.attribute_multi_loss_fct = nn.BCEWithLogitsLoss()
         else:
             raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE']!")
 
@@ -269,11 +270,11 @@ class SASRecG(SequentialRecommender):
                 attribute_labels = self.raw_item_attributes
                 # attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
                 attribute_labels = self.to_onehot(attribute_labels, self.all_attribute_count)
-                import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 # attribute_labels = attribute_labels.sum(dim=1)
-                attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
-                attr_loss = torch.mean(attribute_loss)
-                losses.append(self.attr_multi_lamda * attr_loss)
+                attribute_loss = self.attribute_multi_loss_fct(attribute_logits, attribute_labels.float())
+                # attr_loss = torch.mean(attribute_loss)
+                losses.append(self.attr_multi_lamda * attribute_loss)
             else:
                 test_attr_emb = self.attr_embedding.weight
                 attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
