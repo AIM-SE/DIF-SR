@@ -226,7 +226,7 @@ class SASRecG(SequentialRecommender):
         output = self.gather_indexes(output, item_seq_len - 1)
         return output  # [B H]
 
-    def to_onehot(labels, n_categories, dtype=torch.float32):
+    def to_onehot(self, labels, n_categories, dtype=torch.float32):
         batch_size = len(labels)
         one_hot_labels = torch.zeros(size=(batch_size, n_categories), dtype=dtype)
         for i, label in enumerate(labels):
