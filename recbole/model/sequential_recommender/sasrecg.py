@@ -252,7 +252,7 @@ class SASRecG(SequentialRecommender):
                     losses.append(self.attr_lamdas[i]*attr_loss)
             elif self.attr_loss == "multi":
                 attribute_logits = self.multi_attr_layer(test_item_emb)
-                attribute_labels = self.item_attributes
+                attribute_labels = self.raw_item_attributes
                 attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
                 attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
                 attr_loss = torch.mean(attribute_loss)
