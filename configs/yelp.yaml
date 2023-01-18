@@ -43,6 +43,9 @@ loss_type: 'CE'
 weight_sharing: 'not'
 fusion_type: 'gate'
 lamdas: [10]
+model_id: 0
+vis: 0
+attr_loss: 'predict'
 attribute_predictor: 'linear'
 
 # training settings
