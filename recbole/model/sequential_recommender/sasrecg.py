@@ -136,6 +136,10 @@ class SASRecG(SequentialRecommender):
                 self.attribute_reg_indexs.append(5)
                 self.attr_lamdas.append(attr_l5)
 
+        if self.attr_loss == 'multi':
+            self.attribute_reg_indexs = []
+            self.attr_lamdas = []
+
         for index in self.attribute_reg_indexs:
             item_attribute = item_attributes[:, index]
             attrs = set(item_attribute.detach().cpu().numpy())
