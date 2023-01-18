@@ -187,8 +187,7 @@ class SASRecD(SequentialRecommender):
                     attribute_logits = a_predictor(seq_output)
                     attribute_labels = interaction.interaction[self.selected_features[i]]
                     import pdb; pdb.set_trace()
-                    attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.n_attributes[
-                        self.selected_features[i]])
+                    attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.n_attributes[self.selected_features[i]])
 
                     if len(attribute_labels.shape) > 2:
                         attribute_labels = attribute_labels.sum(dim=1)
