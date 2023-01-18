@@ -31,7 +31,7 @@ def parse(exp):
                         split_line = line.strip().split(":")
                         map['params'] = split_line[1]
                     elif line.__contains__("test result:"):
-                        result_string = line.split("[")[1][:-3]
+                        result_string = line.split("test result")[1][2:-1]
                         result_map = ast.literal_eval(result_string)
                         map.update(result_map)
                     elif line.__contains__("Saving current"):
