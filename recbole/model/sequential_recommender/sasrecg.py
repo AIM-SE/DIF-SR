@@ -158,7 +158,7 @@ class SASRecG(SequentialRecommender):
         self.attr_embeddings = nn.ModuleList(attr_embeddings)
         self.attr_layers = nn.ModuleList(attr_layers)
         if self.attr_loss == "multi":
-            self.multi_attr_layer = nn.Linear(in_features=self.hidden_size, out_features=all_attribute_count)
+            self.multi_attr_layer = nn.Linear(in_features=self.hidden_size, out_features=self.all_attribute_count)
         if self.loss_type == 'BPR':
             self.loss_fct = BPRLoss()
         elif self.loss_type == 'CE':
