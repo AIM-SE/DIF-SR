@@ -143,7 +143,7 @@ class SASRecG(SequentialRecommender):
             attr_id_map = {}
             item_attributes = item_attributes[:, :self.multi_index+1]
             print('item_attributes', item_attributes.shape)
-            for i in range(len(item_attributes)):
+            for i in range(self.multi_index+1):
                 item_attribute = item_attributes[:, i]
                 attrs = set(item_attribute.detach().cpu().numpy())
                 for i, attr in enumerate(attrs):
