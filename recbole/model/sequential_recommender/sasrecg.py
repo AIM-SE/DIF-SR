@@ -64,6 +64,7 @@ class SASRecG(SequentialRecommender):
         self.pos_atten = config['pos_atten'] > 0
         self.prefix = config['exp']
         self.fusion_type = config['fusion_type']
+        self.multi_index = config['multi_index']
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
@@ -139,6 +140,23 @@ class SASRecG(SequentialRecommender):
         if self.attr_loss == 'multi':
             self.attribute_reg_indexs = []
             self.attr_lamdas = []
+            attr_id_map = {}
+            item_attributes = item_attributes[:, :self.multi_index+1]
+            print('item_attributes', item_attributes.shape)
+            for i in range(len(item_attributes)):
+                item_attribute = item_attributes[:, i]
+                attrs = set(item_attribute.detach().cpu().numpy())
+                for i, attr in enumerate(attrs):
+                    attr_id_map[attr] = i
+            attribute_count = len(attr_id_map)
+            for i in range(len(item_attributes)):
+                item_attribute = item_attributes[:, i]
+                for j in range(len(item_attribute)):
+                    item_attribute[j] = attr_id_map[item_attribute[j].item()]
+
+            self.all_attribute_count = attribute_count
+            self.raw_item_attributes = item_attributes
+
 
         for index in self.attribute_reg_indexs:
             item_attribute = item_attributes[:, index]
