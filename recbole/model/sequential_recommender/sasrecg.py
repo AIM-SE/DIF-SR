@@ -106,6 +106,7 @@ class SASRecG(SequentialRecommender):
         self.n_attributes[attribute] = attribute_count
         item_attributes = dataset.item_feat['categories'].to(self.device)
 
+        self.raw_item_attributes = item_attributes
         self.item_attributes = []
         self.item_attribute_counts = []
         attr_embeddings = []
@@ -236,6 +237,7 @@ class SASRecG(SequentialRecommender):
 
             if self.attr_loss == "predict":
                 for i, attr_layer in enumerate(self.attr_layers):
+                    import pdb; pdb.set_trace()
                     attribute_logits = attr_layer(test_item_emb)
                     attribute_labels = self.item_attributes[i]
                     attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.item_attribute_counts[i])
@@ -246,6 +248,7 @@ class SASRecG(SequentialRecommender):
                 test_attr_emb = self.attr_embedding.weight
                 attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
                 attr_loss = self.loss_fct(attr_logits, self.item_attribute)
+                losses.append(self.attr_lamdas[0] * attr_loss)
 
             return tuple(losses)
 

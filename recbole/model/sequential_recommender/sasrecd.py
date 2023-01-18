@@ -186,6 +186,7 @@ class SASRecD(SequentialRecommender):
                 for i, a_predictor in enumerate(self.ap):
                     attribute_logits = a_predictor(seq_output)
                     attribute_labels = interaction.interaction[self.selected_features[i]]
+                    import pdb; pdb.set_trace()
                     attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.n_attributes[
                         self.selected_features[i]])
 
