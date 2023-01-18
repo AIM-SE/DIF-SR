@@ -19,7 +19,7 @@ import torch
 from torch import nn
 
 from recbole.model.abstract_recommender import SequentialRecommender
-from recbole.model.layers import TransformerEncoder
+from recbole.model.layers import TransformerEncoder, PosTransformerEncoder
 from recbole.model.loss import BPRLoss
 
 
@@ -60,7 +60,9 @@ class SASRecG(SequentialRecommender):
             self.attribute_reg_indexs = [self.attribute_reg_indexs]
 
         self.vis = config['vis'] > 0
+        self.pos_atten = config['pos_atten'] > 0
         self.prefix = config['exp']
+        self.fusion_type = config['fusion_type']
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
@@ -75,6 +77,21 @@ class SASRecG(SequentialRecommender):
             hidden_act=self.hidden_act,
             layer_norm_eps=self.layer_norm_eps
         )
+
+        if self.pos_atten:
+            self.trm_encoder = PosTransformerEncoder(
+                n_layers=self.n_layers,
+                n_heads=self.n_heads,
+                hidden_size=self.hidden_size,
+                inner_size=self.inner_size,
+                hidden_dropout_prob=self.hidden_dropout_prob,
+                attn_dropout_prob=self.attn_dropout_prob,
+                hidden_act=self.hidden_act,
+                layer_norm_eps=self.layer_norm_eps,
+                feat_num=len(self.selected_features),
+                max_len=self.max_seq_length,
+                fusion_type=self.fusion_type
+            )
 
         self.LayerNorm = nn.LayerNorm(self.hidden_size, eps=self.layer_norm_eps)
         self.dropout = nn.Dropout(self.hidden_dropout_prob)
@@ -184,13 +201,17 @@ class SASRecG(SequentialRecommender):
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
-        input_emb = item_emb + position_embedding
+        if not self.pos_atten:
+            input_emb = item_emb + position_embedding
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
 
         extended_attention_mask = self.get_attention_mask(item_seq)
 
-        trm_output = self.trm_encoder(input_emb, extended_attention_mask, output_all_encoded_layers=True)
+        if self.pos_atten:
+            trm_output = self.trm_encoder(input_emb, position_embedding, extended_attention_mask, output_all_encoded_layers=True)
+        else:
+            trm_output = self.trm_encoder(input_emb, extended_attention_mask, output_all_encoded_layers=True)
         output = trm_output[-1]
         output = self.gather_indexes(output, item_seq_len - 1)
         return output  # [B H]
