@@ -101,7 +101,8 @@ class Trainer(AbstractTrainer):
         self.device = config['device']
         self.checkpoint_dir = config['checkpoint_dir']
         ensure_dir(self.checkpoint_dir)
-        saved_model_file = '{}-{}.pth'.format(self.config['model'], get_local_time())
+        # saved_model_file = '{}-{}.pth'.format(self.config['model'], get_local_time())
+        saved_model_file = '{}-{}-{}-{}.pth'.format(self.config['model'], get_local_time(), self.config['dataset'], self.config['model_id'])
         self.saved_model_file = os.path.join(self.checkpoint_dir, saved_model_file)
         self.weight_decay = config['weight_decay']
 
