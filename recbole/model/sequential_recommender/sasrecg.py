@@ -229,12 +229,12 @@ class SASRecG(SequentialRecommender):
     def to_onehot(self, labels, n_categories, dtype=torch.float32):
         batch_size = len(labels)
         one_hot_labels = torch.zeros(size=(batch_size, n_categories), dtype=dtype).to(self.device)
-        import pdb; pdb.set_trace()
         for i, label in enumerate(labels):
             # Subtract 1 from each LongTensor because your
             # indexing starts at 1 and tensor indexing starts at 0
-            label = (torch.LongTensor(label).cpu() - 1).to(self.device)
+            # label = (torch.LongTensor(label).cpu() - 1).to(self.device)
             one_hot_labels[i] = one_hot_labels[i].scatter_(dim=0, index=label, value=1.)
+        one_hot_labels[:, 0] = 0.0
         return one_hot_labels
 
     def calculate_loss(self, interaction):
