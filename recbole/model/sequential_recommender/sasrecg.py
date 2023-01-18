@@ -173,6 +173,9 @@ class SASRecG(SequentialRecommender):
             self.item_attributes.append(item_attribute)
             attr_embeddings.append(nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0))
             attr_layers.append(nn.Linear(in_features=self.hidden_size, out_features=attribute_count))
+            # attr_layers.append(nn.Sequential(
+            #      nn.Linear(in_features=self.hidden_size, out_features=self.inner_size),
+            #      nn.Linear(in_features=self.inner_size, out_features=attribute_count)))
         self.attr_embeddings = nn.ModuleList(attr_embeddings)
         self.attr_layers = nn.ModuleList(attr_layers)
         if self.attr_loss == "multi":
@@ -182,6 +185,7 @@ class SASRecG(SequentialRecommender):
         elif self.loss_type == 'CE':
             self.loss_fct = nn.CrossEntropyLoss()
             self.attribute_loss_fct = nn.BCEWithLogitsLoss(reduction='none')
+            self.attribute_multi_loss_fct = nn.BCEWithLogitsLoss()
         else:
             raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE']!")
 
@@ -241,6 +245,17 @@ class SASRecG(SequentialRecommender):
         output = self.gather_indexes(output, item_seq_len - 1)
         return output  # [B H]
 
+    def to_onehot(self, labels, n_categories, dtype=torch.float32):
+        batch_size = len(labels)
+        one_hot_labels = torch.zeros(size=(batch_size, n_categories), dtype=dtype).to(self.device)
+        for i, label in enumerate(labels):
+            # Subtract 1 from each LongTensor because your
+            # indexing starts at 1 and tensor indexing starts at 0
+            # label = (torch.LongTensor(label).cpu() - 1).to(self.device)
+            one_hot_labels[i] = one_hot_labels[i].scatter_(dim=0, index=label, value=1.)
+        one_hot_labels[:, 0] = 0.0
+        return one_hot_labels
+
     def calculate_loss(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
@@ -271,11 +286,13 @@ class SASRecG(SequentialRecommender):
             elif self.attr_loss == "multi":
                 attribute_logits = self.multi_attr_layer(test_item_emb)
                 attribute_labels = self.raw_item_attributes
-                attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
-                attribute_labels = attribute_labels.sum(dim=1)
-                attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
-                attr_loss = torch.mean(attribute_loss)
-                losses.append(self.attr_multi_lamda * attr_loss)
+                # attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
+                attribute_labels = self.to_onehot(attribute_labels, self.all_attribute_count)
+                # import pdb; pdb.set_trace()
+                # attribute_labels = attribute_labels.sum(dim=1)
+                attribute_loss = self.attribute_multi_loss_fct(attribute_logits, attribute_labels.float())
+                # attr_loss = torch.mean(attribute_loss)
+                losses.append(self.attr_multi_lamda * attribute_loss)
             else:
                 test_attr_emb = self.attr_embedding.weight
                 attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
