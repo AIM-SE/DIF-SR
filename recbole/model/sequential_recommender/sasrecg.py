@@ -53,6 +53,7 @@ class SASRecG(SequentialRecommender):
         self.selected_features = config['selected_features']
         self.attribute_reg_indexs = config['attr_regi']
         self.attr_lamdas = config['attr_lamdas']
+        self.attr_multi_lamda = config['attr_multi_lamda']
 
         if type(self.attr_lamdas) == int:
             self.attr_lamdas = [self.attr_lamdas]
@@ -102,8 +103,8 @@ class SASRecG(SequentialRecommender):
 
         self.n_attributes = {}
         attribute = self.selected_features[0]
-        attribute_count = len(dataset.field2token_id[attribute])
-        self.n_attributes[attribute] = attribute_count
+        self.all_attribute_count = len(dataset.field2token_id[attribute])
+        self.n_attributes[attribute] = self.all_attribute_count
         item_attributes = dataset.item_feat['categories'].to(self.device)
 
         self.raw_item_attributes = item_attributes
@@ -152,6 +153,8 @@ class SASRecG(SequentialRecommender):
             attr_layers.append(nn.Linear(in_features=self.hidden_size, out_features=attribute_count))
         self.attr_embeddings = nn.ModuleList(attr_embeddings)
         self.attr_layers = nn.ModuleList(attr_layers)
+        if self.attr_loss == "multi":
+            self.multi_attr_layer = nn.Linear(in_features=self.hidden_size, out_features=all_attribute_count)
         if self.loss_type == 'BPR':
             self.loss_fct = BPRLoss()
         elif self.loss_type == 'CE':
@@ -244,6 +247,13 @@ class SASRecG(SequentialRecommender):
                     attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
                     attr_loss = torch.mean(attribute_loss)
                     losses.append(self.attr_lamdas[i]*attr_loss)
+            elif self.attr_loss == "multi":
+                attribute_logits = self.multi_attr_layer(test_item_emb)
+                attribute_labels = self.item_attributes
+                attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
+                attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
+                attr_loss = torch.mean(attribute_loss)
+                losses.append(self.attr_multi_lamda * attr_loss)
             else:
                 test_attr_emb = self.attr_embedding.weight
                 attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
