@@ -149,6 +149,7 @@ class SASRecG(SequentialRecommender):
                 for i, attr in enumerate(attrs):
                     attr_id_map[attr] = i
             attribute_count = len(attr_id_map)
+            print("number of multi categories: ", self.multi_index, attribute_count)
             for i in range(len(item_attributes)):
                 item_attribute = item_attributes[:, i]
                 for j in range(len(item_attribute)):
