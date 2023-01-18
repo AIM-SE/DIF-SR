@@ -4,7 +4,7 @@ exp = 'e1'
 log_dir = './' + exp + '/' # sasrec p new
 gpu_id = 0
 i = 0
-group = 8 # 4
+group = 4 # 4
 print("use start i as ", i)
 grid = {
     'attr_l1': [0, 1, 2],
