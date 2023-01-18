@@ -226,6 +226,16 @@ class SASRecG(SequentialRecommender):
         output = self.gather_indexes(output, item_seq_len - 1)
         return output  # [B H]
 
+    def to_onehot(labels, n_categories, dtype=torch.float32):
+        batch_size = len(labels)
+        one_hot_labels = torch.zeros(size=(batch_size, n_categories), dtype=dtype)
+        for i, label in enumerate(labels):
+            # Subtract 1 from each LongTensor because your
+            # indexing starts at 1 and tensor indexing starts at 0
+            label = torch.LongTensor(label) - 1
+            one_hot_labels[i] = one_hot_labels[i].scatter_(dim=0, index=label, value=1.)
+        return one_hot_labels
+
     def calculate_loss(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
@@ -256,8 +266,10 @@ class SASRecG(SequentialRecommender):
             elif self.attr_loss == "multi":
                 attribute_logits = self.multi_attr_layer(test_item_emb)
                 attribute_labels = self.raw_item_attributes
-                attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
-                attribute_labels = attribute_labels.sum(dim=1)
+                # attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
+                attribute_labels = self.to_onehot(attribute_labels, self.all_attribute_count)
+                import pdb; pdb.set_trace()
+                # attribute_labels = attribute_labels.sum(dim=1)
                 attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
                 attr_loss = torch.mean(attribute_loss)
                 losses.append(self.attr_multi_lamda * attr_loss)
