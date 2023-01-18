@@ -201,8 +201,7 @@ class SASRecG(SequentialRecommender):
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
-        if not self.pos_atten:
-            input_emb = item_emb + position_embedding
+        input_emb = item_emb if self.pos_atten else item_emb + position_embedding
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
 
