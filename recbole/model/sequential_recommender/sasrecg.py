@@ -65,6 +65,8 @@ class SASRecG(SequentialRecommender):
         self.prefix = config['exp']
         self.fusion_type = config['fusion_type']
         self.multi_index = config['multi_index']
+        self.loss_redu = config['loss_redu'] > 0
+
 
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
@@ -185,8 +187,10 @@ class SASRecG(SequentialRecommender):
             self.loss_fct = BPRLoss()
         elif self.loss_type == 'CE':
             self.loss_fct = nn.CrossEntropyLoss()
-            self.attribute_loss_fct = nn.BCEWithLogitsLoss(reduction='none')
-            self.attribute_multi_loss_fct = nn.BCEWithLogitsLoss()
+            if self.loss_redu:
+                self.attribute_loss_fct = nn.BCEWithLogitsLoss()
+            else:
+                self.attribute_loss_fct = nn.BCEWithLogitsLoss(reduction='none')
         else:
             raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE']!")
 
@@ -282,7 +286,7 @@ class SASRecG(SequentialRecommender):
                     attribute_labels = self.item_attributes[i]
                     attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.item_attribute_counts[i])
                     attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
-                    attr_loss = torch.mean(attribute_loss)
+                    attr_loss = attribute_loss if self.loss_redu else torch.mean(attribute_loss)
                     losses.append(self.attr_lamdas[i]*attr_loss)
             elif self.attr_loss == "multi":
                 attribute_logits = self.multi_attr_layer(test_item_emb)
@@ -291,9 +295,9 @@ class SASRecG(SequentialRecommender):
                 attribute_labels = self.to_onehot(attribute_labels, self.all_attribute_count)
                 # import pdb; pdb.set_trace()
                 # attribute_labels = attribute_labels.sum(dim=1)
-                attribute_loss = self.attribute_multi_loss_fct(attribute_logits, attribute_labels.float())
-                # attr_loss = torch.mean(attribute_loss)
-                losses.append(self.attr_multi_lamda * attribute_loss)
+                attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
+                attr_loss = attribute_loss if self.loss_redu else torch.mean(attribute_loss)
+                losses.append(self.attr_multi_lamda * attr_loss)
             else:
                 test_attr_emb = self.attr_embedding.weight
                 attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
