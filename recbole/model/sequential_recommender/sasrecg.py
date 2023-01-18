@@ -155,7 +155,7 @@ class SASRecG(SequentialRecommender):
             self.item_attributes.append(item_attribute)
             attr_embeddings.append(nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0))
             # attr_layers.append(nn.Linear(in_features=self.hidden_size, out_features=attribute_count))
-            attr_layers.append(nn.ModuleList(
+            attr_layers.append(nn.Sequential(
                 [nn.Linear(in_features=self.hidden_size, out_features=self.inner_size),
                  nn.Linear(in_features=self.inner_size, out_features=attribute_count)]))
         self.attr_embeddings = nn.ModuleList(attr_embeddings)
