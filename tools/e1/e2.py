@@ -7,7 +7,7 @@ i = 0
 group = 3 # 4
 print("use start i as ", i)
 grid = {
-    'attr_l1': [0.5, 1, 2],
+    'attr_l1': [1, 2],
     'attr_l2': [0, 0.5, 1],
     'attr_l3': [0, 0.5, 1],
     'attr_l4': [0, 0.5],
