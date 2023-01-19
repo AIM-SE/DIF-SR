@@ -23,3 +23,7 @@ attr_l3: 0
 attr_l4: 0
 attr_l5: 0
 loss_redu: 0
+attr_regi: 1
+attr_loss: 'predict'
+vis: 0
+pos_atten: 0
