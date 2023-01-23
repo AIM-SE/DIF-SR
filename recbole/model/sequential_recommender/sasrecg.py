@@ -196,12 +196,14 @@ class SASRecG(SequentialRecommender):
         else:
             raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE']!")
 
-        # parameters initialization
-        self.apply(self._init_weights)
 
         if self.gauss_init:
             self.embed_item_mean = nn.Linear(self.n_items, self.hidden_size)
             self.embed_item_var = nn.Linear(self.n_items, self.hidden_size)
+
+
+        # parameters initialization
+        self.apply(self._init_weights)
 
     def _init_weights(self, module):
         """ Initialize the weights """
