@@ -21,6 +21,7 @@ from torch import nn
 from recbole.model.abstract_recommender import SequentialRecommender
 from recbole.model.layers import TransformerEncoder, PosTransformerEncoder
 from recbole.model.loss import BPRLoss
+import torch.nn.functional as F
 
 
 class SASRecG(SequentialRecommender):
@@ -66,6 +67,7 @@ class SASRecG(SequentialRecommender):
         self.fusion_type = config['fusion_type']
         self.multi_index = config['multi_index']
         self.loss_redu = config['loss_redu'] > 0
+        self.gauss_init = config['gauss_init'] > 0
 
 
         # define layers and loss
@@ -197,6 +199,10 @@ class SASRecG(SequentialRecommender):
         # parameters initialization
         self.apply(self._init_weights)
 
+        if self.gauss_init:
+            self.embed_item_mean = nn.Linear(self.n_items, self.hidden_size)
+            self.embed_item_var = nn.Linear(self.n_items, self.hidden_size)
+
     def _init_weights(self, module):
         """ Initialize the weights """
         if isinstance(module, (nn.Linear, nn.Embedding)):
@@ -230,12 +236,31 @@ class SASRecG(SequentialRecommender):
             for i, label in enumerate(self.item_attributes):
                 self.vis_emb(self.item_embedding, epoch, exp=self.prefix+"_cat"+str(i), labels=label.detach().cpu().numpy())
 
+    def convert_one_hot(self, feature, size):
+        """ Convert user and item ids into one-hot format. """
+        batch_size = feature.shape[0]
+        seq_size = feature.shape[1]
+        feature = feature.view(batch_size*seq_size, 1)
+        f_onehot = torch.FloatTensor(batch_size*seq_size, size).to(self.device)
+        f_onehot.zero_()
+        f_onehot.scatter_(-1, feature, 1)
+
+        return f_onehot.view(batch_size, seq_size, 1)
+
     def forward(self, item_seq, item_seq_len):
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
         position_ids = position_ids.unsqueeze(0).expand_as(item_seq)
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
+        if self.gauss_init:
+            item = self.convert_one_hot(item_seq, self.hidden_size)
+            item_mean = self.embed_item_mean(item).unsqueeze(1)
+            item_std = (F.elu(self.embed_item_var(item)) + 1).unsqueeze(1)
+            item_emb = item_emb * item_std + item_mean
+            # samples_item = samples_item.unsqueeze(2)
+            # samples_item = samples_item.repeat(1, 1, self.k, 1)  # (batch_size, k, k, embed_size)
+
         input_emb = item_emb if self.pos_atten else item_emb + position_embedding
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
