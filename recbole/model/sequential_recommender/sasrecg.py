@@ -256,10 +256,14 @@ class SASRecG(SequentialRecommender):
 
         item_emb = self.item_embedding(item_seq)
         if self.gauss_init:
-            item = self.convert_one_hot(item_seq, self.n_items)
-            item_mean = self.embed_item_mean(item).unsqueeze(1)
-            item_std = (F.elu(self.embed_item_var(item)) + 1).unsqueeze(1)
-            item_emb = item_emb * item_std + item_mean
+            b = item_seq.shape(0)
+            for i in range(b):
+                item = self.convert_one_hot(item_seq[b], self.n_items)
+                item_mean = self.embed_item_mean(item).unsqueeze(1)
+                item_std = (F.elu(self.embed_item_var(item)) + 1).unsqueeze(1)
+                item_emb[b] *= item_std
+                item_emb[b] += item_mean
+
             # samples_item = samples_item.unsqueeze(2)
             # samples_item = samples_item.repeat(1, 1, self.k, 1)  # (batch_size, k, k, embed_size)
 
