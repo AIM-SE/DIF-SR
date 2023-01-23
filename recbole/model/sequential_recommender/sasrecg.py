@@ -241,13 +241,14 @@ class SASRecG(SequentialRecommender):
     def convert_one_hot(self, feature, size):
         """ Convert user and item ids into one-hot format. """
         batch_size = feature.shape[0]
-        seq_size = feature.shape[1]
-        feature = feature.view(batch_size*seq_size, 1)
-        f_onehot = torch.FloatTensor(batch_size*seq_size, size).to(self.device)
+        # seq_size = feature.shape[1]
+        feature = feature.view(batch_size, 1)
+        f_onehot = torch.FloatTensor(batch_size, size).to(self.device)
         f_onehot.zero_()
         f_onehot.scatter_(-1, feature, 1)
 
-        return f_onehot.view(batch_size, seq_size, size)
+        return f_onehot
+        # return f_onehot.view(batch_size, size)
 
     def forward(self, item_seq, item_seq_len):
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
@@ -256,7 +257,7 @@ class SASRecG(SequentialRecommender):
 
         item_emb = self.item_embedding(item_seq)
         if self.gauss_init:
-            b = item_seq.shape(0)
+            b = item_seq.shape[0]
             for i in range(b):
                 item = self.convert_one_hot(item_seq[b], self.n_items)
                 item_mean = self.embed_item_mean(item).unsqueeze(1)
