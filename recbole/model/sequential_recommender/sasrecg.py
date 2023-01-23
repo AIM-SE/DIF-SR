@@ -256,7 +256,7 @@ class SASRecG(SequentialRecommender):
 
         item_emb = self.item_embedding(item_seq)
         if self.gauss_init:
-            item = self.convert_one_hot(item_seq, self.hidden_size)
+            item = self.convert_one_hot(item_seq, self.n_items)
             item_mean = self.embed_item_mean(item).unsqueeze(1)
             item_std = (F.elu(self.embed_item_var(item)) + 1).unsqueeze(1)
             item_emb = item_emb * item_std + item_mean
