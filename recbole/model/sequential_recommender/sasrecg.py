@@ -262,6 +262,7 @@ class SASRecG(SequentialRecommender):
                 item = self.convert_one_hot(item_seq[i], self.n_items)
                 item_mean = self.embed_item_mean(item).unsqueeze(1)
                 item_std = (F.elu(self.embed_item_var(item)) + 1).unsqueeze(1)
+                import pdb; pdb.set_trace()
                 item_emb[i] *= item_std
                 item_emb[i] += item_mean
 
