@@ -247,7 +247,7 @@ class SASRecG(SequentialRecommender):
         f_onehot.zero_()
         f_onehot.scatter_(-1, feature, 1)
 
-        return f_onehot.view(batch_size, seq_size, 1)
+        return f_onehot.view(batch_size, seq_size, size)
 
     def forward(self, item_seq, item_seq_len):
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
