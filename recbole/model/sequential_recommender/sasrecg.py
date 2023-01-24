@@ -295,7 +295,7 @@ class SASRecG(SequentialRecommender):
         one_hot_labels[:, 0] = 0.0
         return one_hot_labels
 
-    def calculate_uniform_loss(x):
+    def calculate_uniform_loss(self, x):
         x = F.normalize(x, dim=-1)
         return torch.pdist(x, p=2).pow(2).mul(-2).exp().mean().log()
 
