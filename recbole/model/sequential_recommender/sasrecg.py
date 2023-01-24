@@ -324,6 +324,7 @@ class SASRecG(SequentialRecommender):
                     embs_in_batch = self.item_embedding(items_in_batch)
                     uni_loss = self.calculate_uniform_loss(embs_in_batch)
                 elif self.uniform_level == 'label':
+                    import pdb;pdb.set_trace()
                     pos_items_emb = self.item_embedding(pos_items)
                     uni_loss = self.calculate_uniform_loss(pos_items_emb)
                 else:
