@@ -68,6 +68,8 @@ class SASRecG(SequentialRecommender):
         self.multi_index = config['multi_index']
         self.loss_redu = config['loss_redu'] > 0
         self.gauss_init = config['gauss_init'] > 0
+        self.uniform_lamda = config['uniform_lamda']
+        self.uniform_level = config['uniform_level']
 
 
         # define layers and loss
@@ -293,6 +295,10 @@ class SASRecG(SequentialRecommender):
         one_hot_labels[:, 0] = 0.0
         return one_hot_labels
 
+    def calculate_uniform_loss(x):
+        x = F.normalize(x, dim=-1)
+        return torch.pdist(x, p=2).pow(2).mul(-2).exp().mean().log()
+
     def calculate_loss(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
@@ -311,6 +317,15 @@ class SASRecG(SequentialRecommender):
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
             losses = [loss]
+
+            if self.uniform_lamda != 0:
+                if self.uniform_level == 'batch':
+                    items_in_batch = item_seq.unique()
+                    embs_in_batch = self.item_embedding(items_in_batch)
+                    uni_loss = self.calculate_uniform_loss(embs_in_batch)
+                else:
+                    uni_loss = self.calculate_uniform_loss(self.item_embedding.weight)
+                losses.append(uni_loss*self.uniform_lamda)
 
             if self.attr_loss == "predict":
                 for i, attr_layer in enumerate(self.attr_layers):
