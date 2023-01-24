@@ -1,6 +1,6 @@
 import random
 import os
-exp = 'e1'
+exp = 'e3'
 log_dir = './' + exp + '/' # sasrec p new
 gpu_id = 0
 i = 0
