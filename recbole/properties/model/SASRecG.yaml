@@ -27,3 +27,6 @@ attr_regi: 1
 attr_loss: 'predict'
 vis: 0
 pos_atten: 0
+gauss_init: 0
+uniform_lamda: 0
+uniform_level: 'batch'
