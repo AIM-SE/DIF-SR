@@ -297,7 +297,7 @@ class SASRecG(SequentialRecommender):
 
     def calculate_uniform_loss(self, x):
         x = F.normalize(x, dim=-1)
-        return torch.pdist(x, p=2).pow(2).mul(-2).exp().mean().log()
+        return -torch.pdist(x, p=2).pow(2).mul(-2).exp().mean().log()
 
     def calculate_loss(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
@@ -325,7 +325,7 @@ class SASRecG(SequentialRecommender):
                     uni_loss = self.calculate_uniform_loss(embs_in_batch)
                 else:
                     uni_loss = self.calculate_uniform_loss(self.item_embedding.weight)
-                import pdb; pdb.set_trace()
+                # import pdb; pdb.set_trace()
                 losses.append(uni_loss*self.uniform_lamda)
 
             if self.attr_loss == "predict":
