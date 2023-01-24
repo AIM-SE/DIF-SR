@@ -117,7 +117,7 @@ class SASRecG(SequentialRecommender):
         self.raw_item_attributes = item_attributes
         self.item_attributes = []
         self.item_attribute_counts = []
-        attr_embeddings = []
+        # attr_embeddings = []
         attr_layers = []
         attr_l1 = config['attr_l1']
         attr_l2 = config['attr_l2']
@@ -178,12 +178,12 @@ class SASRecG(SequentialRecommender):
             print("number of categories: index", index, attribute_count)
             self.item_attribute_counts.append(attribute_count)
             self.item_attributes.append(item_attribute)
-            attr_embeddings.append(nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0))
+            # attr_embeddings.append(nn.Embedding(attribute_count + 1, self.hidden_size, padding_idx=0))
             attr_layers.append(nn.Linear(in_features=self.hidden_size, out_features=attribute_count))
             # attr_layers.append(nn.Sequential(
             #      nn.Linear(in_features=self.hidden_size, out_features=self.inner_size),
             #      nn.Linear(in_features=self.inner_size, out_features=attribute_count)))
-        self.attr_embeddings = nn.ModuleList(attr_embeddings)
+        # self.attr_embeddings = nn.ModuleList(attr_embeddings)
         self.attr_layers = nn.ModuleList(attr_layers)
         if self.attr_loss == "multi":
             self.multi_attr_layer = nn.Linear(in_features=self.hidden_size, out_features=self.all_attribute_count)
