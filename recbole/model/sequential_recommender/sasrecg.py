@@ -325,6 +325,7 @@ class SASRecG(SequentialRecommender):
                     uni_loss = self.calculate_uniform_loss(embs_in_batch)
                 else:
                     uni_loss = self.calculate_uniform_loss(self.item_embedding.weight)
+                import pdb; pdb.set_trace()
                 losses.append(uni_loss*self.uniform_lamda)
 
             if self.attr_loss == "predict":
