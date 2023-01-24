@@ -18,7 +18,7 @@ grid = {
 
     # @todo Dataset params should be the last in this map
     # @todo Pls don't change this rule
-    'dataset': ['Amazon_Beauty', 'yelp'],
+    'dataset': ['Amazon_Beauty'],
 }
 
 
