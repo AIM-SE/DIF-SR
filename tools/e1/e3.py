@@ -9,7 +9,7 @@ print("use start i as ", i)
 grid = {
     'attr_l1': [1, 2],
     'attr_l2': [0.3, 0.5],
-    'attr_l3': [0.3, 0.5],
+    'attr_l3': [0.3],
     # 'attr_l4': [0, 0.5],
     # 'attr_l5': [0, 0.5],
     'pos_atten': [1],
