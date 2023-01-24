@@ -1,6 +1,6 @@
 import random
 import os
-exp = 'e4'
+exp = 'e5'
 log_dir = './' + exp + '/' # sasrec p new
 gpu_id = 0
 i = 0
@@ -8,17 +8,18 @@ group = 4 # 4
 print("use start i as ", i)
 grid = {
     'attr_l1': [1, 2],
-    'attr_l2': [0.1, 0.3, 0.5],
-    'attr_l3': [0.1, 0.3, 0.5],
-    # 'attr_l4': [0, 0.5],
+    'attr_l2': [0, 0.1, 0.5],
+    'attr_l3': [0, 0.1, 0.5],
+    'attr_l4': [0, 0.1, 0.5],
     # 'attr_l5': [0, 0.5],
     'pos_atten': [1],
-    'uniform_lamda': [0.05, 0.1, 0.2],
-    'train_batch_size': [512],
+    'uniform_lamda': [0.1, 0.3, 1],
+    'uniform_level': ['label'],
+    'train_batch_size': [1024],
 
     # @todo Dataset params should be the last in this map
     # @todo Pls don't change this rule
-    'dataset': ['Amazon_Beauty'],
+    'dataset': ['Amazon_Beauty', 'yelp'],
 }
 
 
