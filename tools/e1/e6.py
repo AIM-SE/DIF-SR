@@ -79,7 +79,7 @@ if __name__ == '__main__':
         step = (idx+1) // 4
         for i in range(idx):
             if i % step == 0:
-                file.write('export g=' + str(i//4) + '\n')
+                file.write('export g=' + str(i//step) + '\n')
             file.write('nohup ' + log_dir + str(i + 1) + '.sh &\n')
 
     print('Scripts for ' + log_dir + ' :', idx, 'Cmds:', len(cmds))
