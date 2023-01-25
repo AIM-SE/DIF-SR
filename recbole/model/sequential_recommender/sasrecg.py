@@ -237,8 +237,7 @@ class SASRecG(SequentialRecommender):
 
     def run_per_epoch(self, epoch):
         if self.vis:
-            for i, label in enumerate(self.item_attributes):
-                self.vis_emb(self.item_embedding, epoch, exp=self.prefix+"_cat"+str(i), labels=label.detach().cpu().numpy())
+            self.vis_emb(self.item_embedding, epoch, exp=self.prefix+"_cat", labels=self.item_attributes[0].detach().cpu().numpy())
             self.vis_emb(self.item_embedding, epoch, exp=self.prefix+"_pop")
 
     def convert_one_hot(self, feature, size):
