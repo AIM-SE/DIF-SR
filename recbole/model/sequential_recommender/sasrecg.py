@@ -236,7 +236,7 @@ class SASRecG(SequentialRecommender):
         return extended_attention_mask
 
     def run_per_epoch(self, epoch):
-        if self.vis:
+        if self.vis and epoch % 2 == 0:
             self.vis_emb(self.item_embedding, epoch, exp=self.prefix+"_cat", labels=self.item_attributes[0].detach().cpu().numpy())
             self.vis_emb(self.item_embedding, epoch, exp=self.prefix+"_pop")
 
