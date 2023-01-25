@@ -4,7 +4,7 @@ exp = 'e6'
 log_dir = './' + exp + '/' # sasrec p new
 gpu_id = 0
 i = 0
-group = 4 # 4
+group = 8 # 4
 print("use start i as ", i)
 grid = {
     'attr_l1': [0.5, 1, 2],
@@ -20,7 +20,8 @@ grid = {
     # @todo Dataset params should be the last in this map
     # @todo Pls don't change this rule
     # 'dataset': ['Amazon_Beauty', 'yelp'],
-    'dataset': ['Amazon_Sports_and_Outdoors', 'Amazon_Toys_and_Games'],
+    # 'dataset': ['Amazon_Sports_and_Outdoors', 'Amazon_Toys_and_Games'],
+    'dataset': ['Amazon_Sports_and_Outdoors'],
 }
 
 
