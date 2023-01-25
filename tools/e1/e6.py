@@ -76,8 +76,9 @@ if __name__ == '__main__':
 
 
     with open(log_dir + 'run.sh', 'w') as file:
+        step = (idx+1) // 4
         for i in range(idx):
-            if i % 4 == 0:
+            if i % step == 0:
                 file.write('export g=' + str(i//4) + '\n')
             file.write('nohup ' + log_dir + str(i + 1) + '.sh &\n')
 
