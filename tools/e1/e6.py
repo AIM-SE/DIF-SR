@@ -15,7 +15,7 @@ grid = {
     'pos_atten': [1],
     'uniform_lamda': [0.1, 0.3, 0.5],
     'uniform_level': ['label'],
-    'train_batch_size': [1024],
+    'train_batch_size': [2048],
 
     # @todo Dataset params should be the last in this map
     # @todo Pls don't change this rule
