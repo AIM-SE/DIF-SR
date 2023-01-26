@@ -13,7 +13,7 @@ grid = {
     # 'attr_l4': [0, 0.1, 0.5],
     # 'attr_l5': [0, 0.5],
     'pos_atten': [1],
-    'uniform_lamda': [0.1, 0.3, 0.5],
+    'uniform_lamda': [0.5, 1, 2],
     'uniform_level': ['label'],
     'train_batch_size': [1024],
 
