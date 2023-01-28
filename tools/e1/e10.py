@@ -8,12 +8,12 @@ group = 8 # 4
 print("use start i as ", i)
 grid = {
     'attr_l1': [2, 3, 4, 6],
-    'attr_l2': [0, 0.5, 1, 2],
-    'attr_l3': [0.5, 1, 2],
+    'attr_l2': [0, 0.5, 1, 2, 4],
+    'attr_l3': [0.5, 1, 2, 4],
     # 'attr_l4': [0, 0.1, 0.5],
     # 'attr_l5': [0, 0.5],
     'pos_atten': [1],
-    'uniform_lamda': [0.5, 0.7, 1],
+    'uniform_lamda': [0.3, 0.5, 0.7, 1],
     'uniform_level': ['label'],
     'train_batch_size': [1024],
 
