@@ -1,0 +1,30 @@
+# general
+gpu_id: 0
+use_gpu: True
+seed: 42
+state: INFO
+reproducibility: True
+data_path: 'dataset/'
+checkpoint_dir: 'saved'
+show_progress: True
+save_dataset: False
+save_dataloaders: False
+
+# dataset
+load_col:
+    inter: [user_id, item_id, rating, timestamp]
+    item: ['item_id','title','sales_rank','price','brand','categories','sales_type']
+MAX_ITEM_LIST_LENGTH: 50
+USER_ID_FIELD: user_id
+ITEM_ID_FIELD: item_id
+RATING_FIELD: rating
+TIME_FIELD: timestamp
+
+# Filtering
+rm_dup_inter: "first"
+val_interval: ~
+filter_inter_by_user_or_item: True
+user_inter_num_interval: "[5,inf)"
+item_inter_num_interval: "[5,inf)"
+
+group_size: 25

@@ -20,3 +20,4 @@ from recbole.model.sequential_recommender.transrec import TransRec
 from recbole.model.sequential_recommender.sasrecd import SASRecD
 from recbole.model.sequential_recommender.sasrecr import SASRecR
 from recbole.model.sequential_recommender.sasrecg import SASRecG
+from recbole.model.sequential_recommender.sasrect import SASRecT
