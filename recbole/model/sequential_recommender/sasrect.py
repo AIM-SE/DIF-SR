@@ -87,10 +87,9 @@ class SASRecT(SequentialRecommender):
         del bert_encoder
 
         self.logger.info("Start to encode text")
-        bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
-        text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
+        text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu']).to(self.device)
         self.text_embs = text_encoder(token_embs[0].to(self.device), tokens['attention_mask'].to(self.device))
-        del bert_model, text_encoder
+        del text_encoder
         self.logger.info("Finish to calculate text")
 
         self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
