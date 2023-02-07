@@ -112,7 +112,7 @@ class SASRecT(SequentialRecommender):
         self.logger.info("Start to load text models")
         bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
         tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-        bert_encoder = BertModel.from_pretrained('bert-base-uncased')
+        bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
         self.text_n_heads = 20
         text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
         self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
@@ -120,7 +120,7 @@ class SASRecT(SequentialRecommender):
         self.logger.info("Start to calculate text")
         tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
         self.logger.info("Start to retrieve text emb")
-        token_embs = bert_encoder(**tokens)
+        token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
         self.logger.info("Start to encode text")
         self.text_embs = text_encoder(token_embs[0].to(self.device), tokens['attention_mask'].to(self.device))
         self.logger.info("Finish to calculate text")
