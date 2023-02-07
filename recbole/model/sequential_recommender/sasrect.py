@@ -25,7 +25,7 @@ import torch.nn.functional as F
 from recbole.model.sequential_recommender.model_bert import *
 from transformers import AutoTokenizer, AutoModel, AutoConfig
 from transformers import BertTokenizer, BertModel
-
+from tqdm import tqdm
 
 class SASRecT(SequentialRecommender):
     r"""
@@ -84,7 +84,7 @@ class SASRecT(SequentialRecommender):
         self.logger.info("Start to retrieve text emb")
         bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
         token_embs = []
-        for i in enumerate(range(0, len(self.item_text_context), 256)):
+        for i in tqdm(range(0, len(self.item_text_context), 256)):
             ids = tokens['input_ids'][i:i+256].to(self.device)
             mask = tokens['attention_mask'][i:i+256].to(self.device)
             type_ids = tokens['token_type_ids'][i:i+256].to(self.device)
