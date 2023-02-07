@@ -91,6 +91,7 @@ class SASRecT(SequentialRecommender):
             type_ids = tokens['token_type_ids'][i:i+batch].to(self.device)
             token_emb = bert_encoder(ids, mask, type_ids)
             token_embs.append(token_emb[0].cpu())
+            print(ids.shape, mask.shape, type_ids.shape, )
             del ids, mask, type_ids, token_emb
         del bert_encoder
         import pdb; pdb.set_trace()
