@@ -107,7 +107,7 @@ class SASRecT(SequentialRecommender):
 
         print("Start to load text data")
         self.text_field = config['text_field']
-        self.item_text = dataset.item_feat[self.text_field].to(self.device)
+        self.item_text = dataset.item_feat[self.text_field]
         self.item_text_context = dataset.id2token(self.text_field, self.item_text)
         print("Start to load text models")
         bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
