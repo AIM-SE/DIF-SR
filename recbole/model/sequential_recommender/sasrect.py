@@ -111,17 +111,16 @@ class SASRecT(SequentialRecommender):
         self.item_text = dataset.item_feat[self.text_field].to(self.device)
         self.item_text_context = self.dataset.id2token(self.text_field, self.item_text)
         bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased').to(self.device)
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
         self.bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
-        self.text_encoder = TextEncoder(bert_model,
-                    self.hidden_size,
-                    self.n_heads, self.hidden_size,
-                    self.hidden_dropout_prob, config['use_gpu']).to(self.device)
-        import pdb; pdb.set_trace()
-        self.item_text_ids = []
-        tokens = self.tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
+        self.text_n_heads = 20
+        self.text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
+        self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
+                                           self.hidden_size)
+        tokens = self.tokenizer(self.item_text_context.tolist()[:4], return_tensors="pt", padding=True)
         token_embs = self.bert_encoder(**tokens)
-        text_embs = self.text_encoder(token_embs[0])
+        text_embs = self.text_encoder(token_embs[0], tokens['attention_mask'])
+        self.text_embs = self.reduce_dim_linear(text_embs)
 
 
 
@@ -188,13 +187,8 @@ class SASRecT(SequentialRecommender):
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
-            # samples_item = samples_item.unsqueeze(2)
-            # samples_item = samples_item.repeat(1, 1, self.k, 1)  # (batch_size, k, k, embed_size)
-
-        import pdb; pdb.set_trace()
-
-
-        input_emb = item_emb
+        text_emb = self.text_embs[item_seq]
+        input_emb = item_emb + text_emb
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
 
