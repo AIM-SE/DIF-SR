@@ -138,7 +138,7 @@ class TextEncoder(torch.nn.Module):
         self.additive_attention = AdditiveAttention(num_attention_heads*20,
                                                     query_vector_dim)
 
-    def forward(self, text, mask=None):
+    def forward(self, word_emb, mask=None):
         """
         Args:
             text: Tensor(batch_size) * num_words_text * embedding_dim
@@ -146,12 +146,13 @@ class TextEncoder(torch.nn.Module):
             (shape) batch_size, word_embedding_dim
         """
         # batch_size, num_words_text
-        batch_size, num_words = text.shape
-        num_words = num_words // 3
-        text_ids = torch.narrow(text, 1, 0, num_words)
-        text_type = torch.narrow(text, 1, num_words, num_words)
-        text_attmask = torch.narrow(text, 1, num_words*2, num_words)
-        word_emb = self.bert_model(text_ids, text_type, text_attmask)[2][8]
+        # import pdb; pdb.set_trace()
+        # batch_size, num_words = text.shape
+        # num_words = num_words // 3
+        # text_ids = torch.narrow(text, 1, 0, num_words)
+        # text_type = torch.narrow(text, 1, num_words, num_words)
+        # text_attmask = torch.narrow(text, 1, num_words*2, num_words)
+        # word_emb = self.bert_model(text_ids, text_type, text_attmask)[2][8]
         text_vector = F.dropout(word_emb,
                                 p=self.dropout_rate,
                                 training=self.training)
