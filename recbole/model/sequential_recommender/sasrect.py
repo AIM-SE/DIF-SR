@@ -83,7 +83,8 @@ class SASRecT(SequentialRecommender):
 
         self.logger.info("Start to retrieve text emb")
         bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
-        token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
+        # token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
+        token_embs = bert_encoder(tokens['input_ids'], tokens['attention_mask'], tokens['token_type_ids'])
         del bert_encoder
 
         self.logger.info("Start to encode text")
