@@ -119,7 +119,9 @@ class SASRecT(SequentialRecommender):
                                            self.hidden_size)
         print("Start to calculate text")
         tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
+        print("Start to retrieve text emb")
         token_embs = bert_encoder(**tokens)
+        print("Start to encode text")
         self.text_embs = text_encoder(token_embs[0].to(self.device), tokens['attention_mask'].to(self.device))
         print("Finish to calculate text")
 
