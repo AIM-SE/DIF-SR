@@ -120,8 +120,7 @@ class SASRecT(SequentialRecommender):
         print("Start to calculate text")
         tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
         token_embs = bert_encoder(**tokens)
-        text_embs = text_encoder(token_embs[0], tokens['attention_mask'])
-        self.text_embs = self.reduce_dim_linear(text_embs)
+        self.text_embs = text_encoder(token_embs[0], tokens['attention_mask'])
         print("Finish to calculate text")
 
 
@@ -190,6 +189,7 @@ class SASRecT(SequentialRecommender):
 
         item_emb = self.item_embedding(item_seq)
         text_emb = self.text_embs[item_seq]
+        text_emb = self.reduce_dim_linear(text_emb)
         input_emb = item_emb + text_emb
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
