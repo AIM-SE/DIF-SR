@@ -24,7 +24,7 @@ from recbole.model.loss import BPRLoss
 import torch.nn.functional as F
 from recbole.model.sequential_recommender.model_bert import *
 from transformers import AutoTokenizer, AutoModel, AutoConfig
-from transformers import BertTokenizer
+from transformers import BertTokenizer, BertModel
 
 
 class SASRecT(SequentialRecommender):
@@ -110,16 +110,18 @@ class SASRecT(SequentialRecommender):
         self.dataset = dataset
         self.item_text = dataset.item_feat[self.text_field].to(self.device)
         self.item_text_context = self.dataset.id2token(self.text_field, self.item_text)
-        bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config)
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+        bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased').to(self.device)
+        self.bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
         self.text_encoder = TextEncoder(bert_model,
                     self.hidden_size,
                     self.n_heads, self.hidden_size,
-                    self.hidden_dropout_prob, False)
+                    self.hidden_dropout_prob, config['use_gpu']).to(self.device)
         import pdb; pdb.set_trace()
         self.item_text_ids = []
         tokens = self.tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
-        output = self.text_encoder(**tokens)
+        token_embs = self.bert_encoder(**tokens)
+        text_embs = self.text_encoder(token_embs[0])
 
 
 
