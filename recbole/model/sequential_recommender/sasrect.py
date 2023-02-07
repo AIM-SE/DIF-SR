@@ -73,18 +73,29 @@ class SASRecT(SequentialRecommender):
         self.logger.info("Start to load text data")
         self.text_field = config['text_field']
         self.item_text = dataset.item_feat[self.text_field]
-        self.item_text_context = dataset.id2token(self.text_field, self.item_text)
+        self.item_text_context = dataset.id2token(self.text_field, self.item_text).tolist()
         self.text_n_heads = 20
 
         self.logger.info("Start to calculate text")
         tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-        tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
+        tokens = tokenizer(self.item_text_context, return_tensors="pt", padding=True)
         del tokenizer
 
         self.logger.info("Start to retrieve text emb")
-        bert_encoder = BertModel.from_pretrained('bert-base-uncased')
+        bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
+        token_embs = []
+        for i in enumerate(range(0, len(self.item_text_context), 256)):
+            ids = tokens['input_ids'][i:i+256].to(self.device)
+            mask = tokens['attention_mask'][i:i+256].to(self.device)
+            type_ids = tokens['token_type_ids'][i:i+256].to(self.device)
+            token_embs.append(bert_encoder(ids, mask, type_ids))
+            del ids, mask, type_ids
+
+        import pdb; pdb.set_trace()
+        token_embs = torch.cat(token_embs)
+
+
         # token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
-        token_embs = bert_encoder(tokens['input_ids'], tokens['attention_mask'], tokens['token_type_ids'])
         del bert_encoder
 
         self.logger.info("Start to encode text")
