@@ -70,10 +70,38 @@ class SASRecT(SequentialRecommender):
         self.fusion_type = config['fusion_type']
 
 
+        self.logger.info("Start to load text data")
+        self.text_field = config['text_field']
+        self.item_text = dataset.item_feat[self.text_field]
+        self.item_text_context = dataset.id2token(self.text_field, self.item_text)
+        self.text_n_heads = 20
+
+        self.logger.info("Start to calculate text")
+        tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+        tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
+        del tokenizer
+
+        self.logger.info("Start to retrieve text emb")
+        bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
+        token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
+        del bert_encoder
+
+        self.logger.info("Start to encode text")
+        bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
+        text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
+        self.text_embs = text_encoder(token_embs[0].to(self.device), tokens['attention_mask'].to(self.device))
+        del bert_model, text_encoder
+        self.logger.info("Finish to calculate text")
+
+        self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
+                                           self.hidden_size)
+
+
         # define layers and loss
         self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
         self.position_embedding = nn.Embedding(self.max_seq_length, self.hidden_size)
-        self.trm_encoder = TransformerEncoder(
+
+        self.trm_encoder = PosTransformerEncoder(
             n_layers=self.n_layers,
             n_heads=self.n_heads,
             hidden_size=self.hidden_size,
@@ -81,50 +109,14 @@ class SASRecT(SequentialRecommender):
             hidden_dropout_prob=self.hidden_dropout_prob,
             attn_dropout_prob=self.attn_dropout_prob,
             hidden_act=self.hidden_act,
-            layer_norm_eps=self.layer_norm_eps
+            layer_norm_eps=self.layer_norm_eps,
+            feat_num=len(self.selected_features),
+            max_len=self.max_seq_length,
+            fusion_type=self.fusion_type
         )
-
-        if self.pos_atten:
-            self.trm_encoder = PosTransformerEncoder(
-                n_layers=self.n_layers,
-                n_heads=self.n_heads,
-                hidden_size=self.hidden_size,
-                inner_size=self.inner_size,
-                hidden_dropout_prob=self.hidden_dropout_prob,
-                attn_dropout_prob=self.attn_dropout_prob,
-                hidden_act=self.hidden_act,
-                layer_norm_eps=self.layer_norm_eps,
-                feat_num=len(self.selected_features),
-                max_len=self.max_seq_length,
-                fusion_type=self.fusion_type
-            )
 
         self.LayerNorm = nn.LayerNorm(self.hidden_size, eps=self.layer_norm_eps)
         self.dropout = nn.Dropout(self.hidden_dropout_prob)
-
-        # self.attribute_reg_indexs = [int(i) for i in config['attr_regi'].split(",")]
-        # self.attr_lamdas = [float(i) for i in config['attr_lamdas'].split(",")]
-
-        self.logger.info("Start to load text data")
-        self.text_field = config['text_field']
-        self.item_text = dataset.item_feat[self.text_field]
-        self.item_text_context = dataset.id2token(self.text_field, self.item_text)
-        self.logger.info("Start to load text models")
-        bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
-        tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-        bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
-        self.text_n_heads = 20
-        text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
-        self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
-                                           self.hidden_size)
-        self.logger.info("Start to calculate text")
-        tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
-        self.logger.info("Start to retrieve text emb")
-        token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
-        self.logger.info("Start to encode text")
-        self.text_embs = text_encoder(token_embs[0].to(self.device), tokens['attention_mask'].to(self.device))
-        self.logger.info("Finish to calculate text")
-
 
 
         if self.loss_type == 'BPR':
