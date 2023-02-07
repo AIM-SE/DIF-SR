@@ -105,11 +105,11 @@ class SASRecT(SequentialRecommender):
         # self.attribute_reg_indexs = [int(i) for i in config['attr_regi'].split(",")]
         # self.attr_lamdas = [float(i) for i in config['attr_lamdas'].split(",")]
 
-        print("Start to load text data")
+        self.logger.info("Start to load text data")
         self.text_field = config['text_field']
         self.item_text = dataset.item_feat[self.text_field]
         self.item_text_context = dataset.id2token(self.text_field, self.item_text)
-        print("Start to load text models")
+        self.logger.info("Start to load text models")
         bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
         tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
         bert_encoder = BertModel.from_pretrained('bert-base-uncased')
@@ -117,13 +117,13 @@ class SASRecT(SequentialRecommender):
         text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
         self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
                                            self.hidden_size)
-        print("Start to calculate text")
+        self.logger.info("Start to calculate text")
         tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
-        print("Start to retrieve text emb")
+        self.logger.info("Start to retrieve text emb")
         token_embs = bert_encoder(**tokens)
-        print("Start to encode text")
+        self.logger.info("Start to encode text")
         self.text_embs = text_encoder(token_embs[0].to(self.device), tokens['attention_mask'].to(self.device))
-        print("Finish to calculate text")
+        self.logger.info("Finish to calculate text")
 
 
 
