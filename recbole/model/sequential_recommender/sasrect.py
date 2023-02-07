@@ -82,23 +82,25 @@ class SASRecT(SequentialRecommender):
         del tokenizer
 
         self.logger.info("Start to retrieve text emb")
-        bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
-        token_embs = []
-        batch = 16
-        for i in tqdm(range(0, len(self.item_text_context), batch)):
-            ids = tokens['input_ids'][i:i+batch].to(self.device)
-            mask = tokens['attention_mask'][i:i+batch].to(self.device)
-            type_ids = tokens['token_type_ids'][i:i+batch].to(self.device)
-            token_emb = bert_encoder(ids, mask, type_ids)
-            token_embs.append(token_emb[0].cpu())
-            print(ids.shape, mask.shape, type_ids.shape, )
-            del ids, mask, type_ids, token_emb
+
+        # GPU version
+        # bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
+        # token_embs = []
+        # batch = 16
+        # for i in tqdm(range(0, len(self.item_text_context), batch)):
+        #     ids = tokens['input_ids'][i:i+batch].to(self.device)
+        #     mask = tokens['attention_mask'][i:i+batch].to(self.device)
+        #     type_ids = tokens['token_type_ids'][i:i+batch].to(self.device)
+        #     token_emb = bert_encoder(ids, mask, type_ids)
+        #     token_embs.append(token_emb[0].cpu())
+        #     print(ids.shape, mask.shape, type_ids.shape, )
+        #     del ids, mask, type_ids, token_emb
+        # token_embs = torch.cat(token_embs).to(self.device)
+
+        # CPU version
+        bert_encoder = BertModel.from_pretrained('bert-base-uncased')
+        token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
         del bert_encoder
-        import pdb; pdb.set_trace()
-        token_embs = torch.cat(token_embs).to(self.device)
-
-
-        # token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
 
         self.logger.info("Start to encode text")
         text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu']).to(self.device)
