@@ -105,22 +105,24 @@ class SASRecT(SequentialRecommender):
         # self.attribute_reg_indexs = [int(i) for i in config['attr_regi'].split(",")]
         # self.attr_lamdas = [float(i) for i in config['attr_lamdas'].split(",")]
 
-
+        print("Start to load text data")
         self.text_field = config['text_field']
-        self.dataset = dataset
         self.item_text = dataset.item_feat[self.text_field].to(self.device)
-        self.item_text_context = self.dataset.id2token(self.text_field, self.item_text)
+        self.item_text_context = dataset.id2token(self.text_field, self.item_text)
+        print("Start to load text models")
         bert_model = AutoModel.from_pretrained("bert-base-uncased", config=config).to(self.device)
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
-        self.bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
+        tokenizer = BertTokenizer.from_pretrained('bert-base-cased')
+        bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
         self.text_n_heads = 20
-        self.text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
+        text_encoder = TextEncoder(bert_model,768,self.text_n_heads, 200,0.2, config['use_gpu']).to(self.device)
         self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
                                            self.hidden_size)
-        tokens = self.tokenizer(self.item_text_context.tolist()[:4], return_tensors="pt", padding=True)
-        token_embs = self.bert_encoder(**tokens)
-        text_embs = self.text_encoder(token_embs[0], tokens['attention_mask'])
+        print("Start to calculate text")
+        tokens = tokenizer(self.item_text_context.tolist(), return_tensors="pt", padding=True)
+        token_embs = bert_encoder(**tokens)
+        text_embs = text_encoder(token_embs[0], tokens['attention_mask'])
         self.text_embs = self.reduce_dim_linear(text_embs)
+        print("Finish to calculate text")
 
 
 
