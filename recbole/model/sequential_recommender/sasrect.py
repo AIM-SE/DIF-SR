@@ -242,8 +242,7 @@ class SASRecT(SequentialRecommender):
             loss = self.loss_fct(pos_score, neg_score)
             return loss
         else:  # self.loss_type = 'CE'
-            test_item_emb = self.item_embedding.weight
-            test_item_emb += self.text_embs
+            test_item_emb = self.item_embedding.weight + self.text_embs
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
             losses = [loss]
