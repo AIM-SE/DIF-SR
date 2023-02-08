@@ -99,7 +99,8 @@ class SASRecT(SequentialRecommender):
             text_embs_batch.append(text_embs.cpu())
             del ids, mask, type_ids, token_emb, text_embs
             torch.cuda.empty_cache()
-        self.text_embs = torch.cat(text_embs_batch).to(self.device)
+        text_embs = torch.cat(text_embs_batch).to(self.device)
+        self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0, _weight = text_embs)
 
         # CPU version
         # bert_encoder = BertModel.from_pretrained('bert-base-uncased')
@@ -115,7 +116,6 @@ class SASRecT(SequentialRecommender):
 
 
         # define layers and loss
-        self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
         self.position_embedding = nn.Embedding(self.max_seq_length, self.hidden_size)
 
         self.trm_encoder = PosTransformerEncoder(
@@ -199,9 +199,10 @@ class SASRecT(SequentialRecommender):
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
-        text_emb = self.text_embs[item_seq]
-        text_emb = self.reduce_dim_linear(text_emb)
-        input_emb = item_emb + text_emb
+        # text_emb = self.text_embs[item_seq]
+        # text_emb = self.reduce_dim_linear(text_emb)
+        # item_emb += text_emb
+        input_emb = item_emb
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
 
