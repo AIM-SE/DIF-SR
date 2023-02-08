@@ -15,5 +15,6 @@ weight_sharing: 'not'
 fusion_type: 'concat'
 lamdas: [10]
 text_field: 'title'
+text_fusion: 'sum'
 vis: 0
 pos_atten: 1

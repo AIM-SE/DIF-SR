@@ -68,6 +68,7 @@ class SASRecT(SequentialRecommender):
         self.pos_atten = config['pos_atten'] > 0
         self.prefix = config['exp']
         self.fusion_type = config['fusion_type']
+        self.text_fusion = config['text_fusion']
 
 
         self.logger.info("Start to load text data")
@@ -100,8 +101,6 @@ class SASRecT(SequentialRecommender):
             del ids, mask, type_ids, token_emb, text_embs
             torch.cuda.empty_cache()
         self.text_embs = torch.cat(text_embs_batch).to(self.device)
-        self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
-
         # CPU version
         # bert_encoder = BertModel.from_pretrained('bert-base-uncased')
         # token_embs = bert_encoder(tokens['input_ids'], tokens['attention_mask'], tokens['token_type_ids'])[0]
@@ -110,6 +109,11 @@ class SASRecT(SequentialRecommender):
         torch.cuda.empty_cache()
 
         self.logger.info("Finish to calculate text")
+
+        if self.text_fusion == "replace":
+            self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0, _weight = self.text_embs)
+        else:
+            self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
 
         self.reduce_dim_linear = nn.Linear(self.text_n_heads * 20,
                                            self.hidden_size)
@@ -199,8 +203,10 @@ class SASRecT(SequentialRecommender):
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
-        text_emb = text_embs[item_seq]
-        item_emb += text_emb
+        if self.text_fusion == 'sum':
+            text_emb = text_embs[item_seq]
+            item_emb += text_emb
+
         input_emb = item_emb
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
@@ -242,7 +248,10 @@ class SASRecT(SequentialRecommender):
             loss = self.loss_fct(pos_score, neg_score)
             return loss
         else:  # self.loss_type = 'CE'
-            test_item_emb = self.item_embedding.weight + text_embs
+            test_item_emb = self.item_embedding.weight
+            if self.text_fusion == 'sum':
+                test_item_emb = text_embs + test_item_emb
+
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
             losses = [loss]
@@ -295,7 +304,9 @@ class SASRecT(SequentialRecommender):
         test_item = interaction[self.ITEM_ID]
         text_embs = self.reduce_dim_linear(self.text_embs)
         seq_output = self.forward(item_seq, item_seq_len, text_embs)
-        test_item_emb = self.item_embedding(test_item) + text_embs[test_item]
+        test_item_emb = self.item_embedding(test_item)
+        if self.text_fusion == 'sum':
+            test_item_emb = test_item_emb + text_embs[test_item]
         scores = torch.mul(seq_output, test_item_emb).sum(dim=1)  # [B]
         return scores
 
@@ -304,6 +315,9 @@ class SASRecT(SequentialRecommender):
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
         text_embs = self.reduce_dim_linear(self.text_embs)
         seq_output = self.forward(item_seq, item_seq_len, text_embs)
-        test_items_emb = self.item_embedding.weight + text_embs
-        scores = torch.matmul(seq_output, test_items_emb.transpose(0, 1))  # [B n_items]
+        if self.text_fusion == 'replace':
+            test_item_emb = text_embs
+        else:
+            test_item_emb = self.item_embedding.weight + text_embs
+        scores = torch.matmul(seq_output, test_item_emb.transpose(0, 1))  # [B n_items]
         return scores
