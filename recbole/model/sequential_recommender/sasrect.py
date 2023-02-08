@@ -111,6 +111,7 @@ class SASRecT(SequentialRecommender):
         self.logger.info("Finish to calculate text")
 
         if self.text_fusion == "replace":
+            import pdb; pdb.set_trace()
             self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0, _weight = self.text_embs)
         else:
             self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
