@@ -85,7 +85,7 @@ class SASRecT(SequentialRecommender):
 
         # GPU version
         bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
-        text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu'])
+        text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu']).to(self.device)
         text_embs_batch = []
         batch = 64
         for i in tqdm(range(0, len(self.item_text_context), batch)):
@@ -95,12 +95,10 @@ class SASRecT(SequentialRecommender):
             with torch.no_grad():
                 token_emb = bert_encoder(ids, mask, type_ids)
                 token_embs_device = token_emb[0]
-                import pdb; pdb.set_trace()
                 text_embs = text_encoder(token_embs_device, mask)
             text_embs_batch.append(text_embs.cpu())
             del ids, mask, type_ids, token_emb, text_embs
             torch.cuda.empty_cache()
-        import pdb; pdb.set_trace()
         self.text_embs = torch.cat(text_embs_batch).to(self.device)
 
         # CPU version
