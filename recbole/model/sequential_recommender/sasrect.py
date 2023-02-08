@@ -92,10 +92,11 @@ class SASRecT(SequentialRecommender):
             ids = tokens['input_ids'][i:i+batch].to(self.device)
             mask = tokens['attention_mask'][i:i+batch].to(self.device)
             type_ids = tokens['token_type_ids'][i:i+batch].to(self.device)
-            token_emb = bert_encoder(ids, mask, type_ids)
+            with torch.no_grad():
+                token_emb = bert_encoder(ids, mask, type_ids)
             token_embs.append(token_emb[0].cpu())
-            print(ids.shape, mask.shape, type_ids.shape, )
             del ids, mask, type_ids, token_emb
+            torch.cuda.empty_cache()
         token_embs = torch.cat(token_embs)
 
         # CPU version
