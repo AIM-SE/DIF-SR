@@ -99,8 +99,8 @@ class SASRecT(SequentialRecommender):
             text_embs_batch.append(text_embs.cpu())
             del ids, mask, type_ids, token_emb, text_embs
             torch.cuda.empty_cache()
-        text_embs = torch.cat(text_embs_batch).to(self.device)
-        self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0, _weight = text_embs)
+        self.text_embs = torch.cat(text_embs_batch).to(self.device)
+        self.item_embedding = nn.Embedding(self.n_items, self.hidden_size, padding_idx=0)
 
         # CPU version
         # bert_encoder = BertModel.from_pretrained('bert-base-uncased')
@@ -199,9 +199,9 @@ class SASRecT(SequentialRecommender):
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
-        # text_emb = self.text_embs[item_seq]
-        # text_emb = self.reduce_dim_linear(text_emb)
-        # item_emb += text_emb
+        text_emb = self.text_embs[item_seq]
+        text_emb = self.reduce_dim_linear(text_emb)
+        item_emb += text_emb
         input_emb = item_emb
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
@@ -243,6 +243,7 @@ class SASRecT(SequentialRecommender):
             return loss
         else:  # self.loss_type = 'CE'
             test_item_emb = self.item_embedding.weight
+            test_item_emb += self.text_embs
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
             losses = [loss]
