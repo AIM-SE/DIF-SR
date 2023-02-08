@@ -122,7 +122,6 @@ class WeightedLinear(torch.nn.Module):
 
 class TextEncoder(torch.nn.Module):
     def __init__(self,
-                 bert_model,
                  word_embedding_dim,
                  num_attention_heads,
                  query_vector_dim,
@@ -130,7 +129,6 @@ class TextEncoder(torch.nn.Module):
                  enable_gpu=True):
         super(TextEncoder, self).__init__()
         #self.word_embedding = word_embedding
-        self.bert_model = bert_model
         self.dropout_rate = dropout_rate
         self.multihead_attention = MultiHeadAttention(word_embedding_dim,
                                                       num_attention_heads, 20,
