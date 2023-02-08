@@ -127,7 +127,7 @@ class SASRecT(SequentialRecommender):
             attn_dropout_prob=self.attn_dropout_prob,
             hidden_act=self.hidden_act,
             layer_norm_eps=self.layer_norm_eps,
-            feat_num=len(self.selected_features),
+            feat_num=0,
             max_len=self.max_seq_length,
             fusion_type=self.fusion_type
         )
@@ -201,7 +201,6 @@ class SASRecT(SequentialRecommender):
         item_emb = self.item_embedding(item_seq)
         text_emb = self.text_embs[item_seq]
         text_emb = self.reduce_dim_linear(text_emb)
-        import pdb; pdb.set_trace()
         input_emb = item_emb + text_emb
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
