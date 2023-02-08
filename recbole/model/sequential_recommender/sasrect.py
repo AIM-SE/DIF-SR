@@ -201,6 +201,7 @@ class SASRecT(SequentialRecommender):
         item_emb = self.item_embedding(item_seq)
         text_emb = self.text_embs[item_seq]
         text_emb = self.reduce_dim_linear(text_emb)
+        import pdb; pdb.set_trace()
         input_emb = item_emb + text_emb
         input_emb = self.LayerNorm(input_emb)
         input_emb = self.dropout(input_emb)
