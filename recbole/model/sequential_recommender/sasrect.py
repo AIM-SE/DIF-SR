@@ -105,7 +105,7 @@ class SASRecT(SequentialRecommender):
         del bert_encoder
 
         self.logger.info("Start to encode text")
-        text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu']).to(self.device)
+        text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu'])
         self.text_embs = text_encoder(token_embs.to(self.device), tokens['attention_mask'].to(self.device))
         del text_encoder
         self.logger.info("Finish to calculate text")
