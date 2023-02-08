@@ -246,6 +246,8 @@ class SASRecT(SequentialRecommender):
             loss = self.loss_fct(logits, pos_items)
             losses = [loss]
 
+            self.uniform_lamda=0
+
             if self.uniform_lamda != 0:
                 if self.uniform_level == 'batch':
                     items_in_batch = item_seq.unique()
@@ -259,30 +261,30 @@ class SASRecT(SequentialRecommender):
                     uni_loss = self.calculate_uniform_loss(self.item_embedding.weight)
                 # import pdb; pdb.set_trace()
                 losses.append(uni_loss*self.uniform_lamda)
-
-            if self.attr_loss == "predict":
-                for i, attr_layer in enumerate(self.attr_layers):
-                    attribute_logits = attr_layer(test_item_emb)
-                    attribute_labels = self.item_attributes[i]
-                    attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.item_attribute_counts[i])
-                    attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
-                    attr_loss = attribute_loss if self.loss_redu else torch.mean(attribute_loss)
-                    losses.append(self.attr_lamdas[i]*attr_loss)
-            elif self.attr_loss == "multi":
-                attribute_logits = self.multi_attr_layer(test_item_emb)
-                attribute_labels = self.raw_item_attributes
-                # attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
-                attribute_labels = self.to_onehot(attribute_labels, self.all_attribute_count)
-                # import pdb; pdb.set_trace()
-                # attribute_labels = attribute_labels.sum(dim=1)
-                attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
-                attr_loss = attribute_loss if self.loss_redu else torch.mean(attribute_loss)
-                losses.append(self.attr_multi_lamda * attr_loss)
-            else:
-                test_attr_emb = self.attr_embedding.weight
-                attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
-                attr_loss = self.loss_fct(attr_logits, self.item_attribute)
-                losses.append(self.attr_lamdas[0] * attr_loss)
+            #
+            # if self.attr_loss == "predict":
+            #     for i, attr_layer in enumerate(self.attr_layers):
+            #         attribute_logits = attr_layer(test_item_emb)
+            #         attribute_labels = self.item_attributes[i]
+            #         attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.item_attribute_counts[i])
+            #         attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
+            #         attr_loss = attribute_loss if self.loss_redu else torch.mean(attribute_loss)
+            #         losses.append(self.attr_lamdas[i]*attr_loss)
+            # elif self.attr_loss == "multi":
+            #     attribute_logits = self.multi_attr_layer(test_item_emb)
+            #     attribute_labels = self.raw_item_attributes
+            #     # attribute_labels = nn.functional.one_hot(attribute_labels, num_classes=self.all_attribute_count)
+            #     attribute_labels = self.to_onehot(attribute_labels, self.all_attribute_count)
+            #     # import pdb; pdb.set_trace()
+            #     # attribute_labels = attribute_labels.sum(dim=1)
+            #     attribute_loss = self.attribute_loss_fct(attribute_logits, attribute_labels.float())
+            #     attr_loss = attribute_loss if self.loss_redu else torch.mean(attribute_loss)
+            #     losses.append(self.attr_multi_lamda * attr_loss)
+            # else:
+            #     test_attr_emb = self.attr_embedding.weight
+            #     attr_logits = torch.matmul(test_item_emb, test_attr_emb.transpose(0, 1))
+            #     attr_loss = self.loss_fct(attr_logits, self.item_attribute)
+            #     losses.append(self.attr_lamdas[0] * attr_loss)
 
             return tuple(losses)
 
