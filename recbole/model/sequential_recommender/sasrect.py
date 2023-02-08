@@ -293,15 +293,17 @@ class SASRecT(SequentialRecommender):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
         test_item = interaction[self.ITEM_ID]
-        seq_output = self.forward(item_seq, item_seq_len)
-        test_item_emb = self.item_embedding(test_item)
+        text_embs = self.reduce_dim_linear(self.text_embs)
+        seq_output = self.forward(item_seq, item_seq_len, text_embs)
+        test_item_emb = self.item_embedding(test_item) + text_embs[test_item]
         scores = torch.mul(seq_output, test_item_emb).sum(dim=1)  # [B]
         return scores
 
     def full_sort_predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
-        seq_output = self.forward(item_seq, item_seq_len)
-        test_items_emb = self.item_embedding.weight
+        text_embs = self.reduce_dim_linear(self.text_embs)
+        seq_output = self.forward(item_seq, item_seq_len, text_embs)
+        test_items_emb = self.item_embedding.weight + text_embs
         scores = torch.matmul(seq_output, test_items_emb.transpose(0, 1))  # [B n_items]
         return scores
