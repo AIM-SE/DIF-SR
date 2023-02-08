@@ -87,7 +87,7 @@ class SASRecT(SequentialRecommender):
         bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
         text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu']).to(self.device)
         text_embs_batch = []
-        batch = 64
+        batch = 256
         for i in tqdm(range(0, len(self.item_text_context), batch)):
             ids = tokens['input_ids'][i:i+batch].to(self.device)
             mask = tokens['attention_mask'][i:i+batch].to(self.device)
