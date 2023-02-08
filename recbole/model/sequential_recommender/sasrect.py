@@ -193,14 +193,13 @@ class SASRecT(SequentialRecommender):
         return f_onehot
         # return f_onehot.view(batch_size, size)
 
-    def forward(self, item_seq, item_seq_len):
+    def forward(self, item_seq, item_seq_len, text_embs):
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
         position_ids = position_ids.unsqueeze(0).expand_as(item_seq)
         position_embedding = self.position_embedding(position_ids)
 
         item_emb = self.item_embedding(item_seq)
-        text_emb = self.text_embs[item_seq]
-        text_emb = self.reduce_dim_linear(text_emb)
+        text_emb = text_embs[item_seq]
         item_emb += text_emb
         input_emb = item_emb
         input_emb = self.LayerNorm(input_emb)
@@ -231,7 +230,8 @@ class SASRecT(SequentialRecommender):
     def calculate_loss(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
-        seq_output = self.forward(item_seq, item_seq_len)
+        text_embs = self.reduce_dim_linear(self.text_embs)
+        seq_output = self.forward(item_seq, item_seq_len, text_embs)
         pos_items = interaction[self.POS_ITEM_ID]
         if self.loss_type == 'BPR':
             neg_items = interaction[self.NEG_ITEM_ID]
@@ -242,7 +242,7 @@ class SASRecT(SequentialRecommender):
             loss = self.loss_fct(pos_score, neg_score)
             return loss
         else:  # self.loss_type = 'CE'
-            test_item_emb = self.item_embedding.weight + self.text_embs
+            test_item_emb = self.item_embedding.weight + text_embs
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
             losses = [loss]
