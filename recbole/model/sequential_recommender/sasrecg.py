@@ -277,6 +277,7 @@ class SASRecG(SequentialRecommender):
         extended_attention_mask = self.get_attention_mask(item_seq)
 
         if self.pos_atten:
+            import pdb; pdb.set_trace()
             trm_output = self.trm_encoder(input_emb, position_embedding, extended_attention_mask, output_all_encoded_layers=True)
         else:
             trm_output = self.trm_encoder(input_emb, extended_attention_mask, output_all_encoded_layers=True)
