@@ -85,7 +85,8 @@ class SASRecT(SequentialRecommender):
 
         # GPU version
         bert_encoder = BertModel.from_pretrained('bert-base-uncased').to(self.device)
-        token_embs = []
+        text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu'])
+        text_embs_batch = []
         batch = 2048
         for i in tqdm(range(0, len(self.item_text_context), batch)):
             ids = tokens['input_ids'][i:i+batch].to(self.device)
@@ -93,24 +94,19 @@ class SASRecT(SequentialRecommender):
             type_ids = tokens['token_type_ids'][i:i+batch].to(self.device)
             with torch.no_grad():
                 token_emb = bert_encoder(ids, mask, type_ids)
-            token_embs.append(token_emb[0].cpu())
-            del ids, mask, type_ids, token_emb
+                token_embs_device = token_emb[0]
+                text_embs = text_encoder(token_embs_device, mask)
+            text_embs_batch.append(text_embs.cpu())
+            del ids, mask, type_ids, token_emb, text_embs
             torch.cuda.empty_cache()
-        token_embs = torch.cat(token_embs)
+        import pdb; pdb.set_trace()
+        self.text_embs = torch.cat(text_embs_batch).to(self.device)
 
         # CPU version
         # bert_encoder = BertModel.from_pretrained('bert-base-uncased')
         # token_embs = bert_encoder(tokens['input_ids'], tokens['attention_mask'], tokens['token_type_ids'])[0]
         # token_embs = bert_encoder(tokens['input_ids'].to(self.device), tokens['attention_mask'].to(self.device), tokens['token_type_ids'].to(self.device))
-        del bert_encoder
-
-        self.logger.info("Start to encode text")
-        text_encoder = TextEncoder(768,self.text_n_heads, 200, 0.2, config['use_gpu'])
-        with torch.no_grad():
-            token_embs_device = token_embs.to(self.device)
-            token_mask_decice = tokens['attention_mask'].to(self.device)
-            self.text_embs = text_encoder(token_embs_device, token_mask_decice)
-        del text_encoder, token_embs_device, token_mask_decice
+        del bert_encoder, text_encoder
         torch.cuda.empty_cache()
 
         self.logger.info("Finish to calculate text")
