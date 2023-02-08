@@ -95,6 +95,7 @@ class SASRecT(SequentialRecommender):
             with torch.no_grad():
                 token_emb = bert_encoder(ids, mask, type_ids)
                 token_embs_device = token_emb[0]
+                import pdb; pdb.set_trace()
                 text_embs = text_encoder(token_embs_device, mask)
             text_embs_batch.append(text_embs.cpu())
             del ids, mask, type_ids, token_emb, text_embs
