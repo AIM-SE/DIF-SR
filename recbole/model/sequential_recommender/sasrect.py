@@ -198,12 +198,13 @@ class SASRecT(SequentialRecommender):
         # return f_onehot.view(batch_size, size)
 
     def forward(self, item_seq, item_seq_len, text_embs):
-        txts = []
-        for id in item_seq[3]:
-            txts.append("\"" + self.item_text_context[id] + "\"")
-            if id == 0:
-                break
-        print(",".join(txts))
+        for seq in item_seq[4:9]:
+            txts = []
+            for id in seq:
+                txts.append("\"" + self.item_text_context[id] + "\"")
+                if id == 0:
+                    break
+            print(",".join(txts), "\n")
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
         position_ids = position_ids.unsqueeze(0).expand_as(item_seq)
         position_embedding = self.position_embedding(position_ids)
@@ -259,7 +260,7 @@ class SASRecT(SequentialRecommender):
             if self.text_fusion == 'replace':
                 test_item_emb = self.item_embedding.weight
             if self.text_fusion == 'sum':
-                test_item_emb = text_embs + test_item_emb
+                test_item_emb = text_embs + self.item_embedding.weight
             if self.text_fusion == 'transform':
                 test_item_emb = text_embs
 
