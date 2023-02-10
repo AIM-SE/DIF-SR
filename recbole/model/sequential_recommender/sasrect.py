@@ -198,6 +198,12 @@ class SASRecT(SequentialRecommender):
         # return f_onehot.view(batch_size, size)
 
     def forward(self, item_seq, item_seq_len, text_embs):
+        txts = []
+        for id in item_seq[3]:
+            txts.append("\"" + self.item_text_context[id] + "\"")
+            if id == 0:
+                break
+        print(",".join(txts))
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
         position_ids = position_ids.unsqueeze(0).expand_as(item_seq)
         position_embedding = self.position_embedding(position_ids)
