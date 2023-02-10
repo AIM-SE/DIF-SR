@@ -198,13 +198,6 @@ class SASRecT(SequentialRecommender):
         # return f_onehot.view(batch_size, size)
 
     def forward(self, item_seq, item_seq_len, text_embs):
-        for seq in item_seq[4:9]:
-            txts = []
-            for id in seq:
-                txts.append("\"" + self.item_text_context[id] + "\"")
-                if id == 0:
-                    break
-            print(",".join(txts), "\n")
         position_ids = torch.arange(item_seq.size(1), dtype=torch.long, device=item_seq.device)
         position_ids = position_ids.unsqueeze(0).expand_as(item_seq)
         position_embedding = self.position_embedding(position_ids)
@@ -248,6 +241,17 @@ class SASRecT(SequentialRecommender):
         text_embs = self.reduce_dim_linear(self.text_embs)
         seq_output = self.forward(item_seq, item_seq_len, text_embs)
         pos_items = interaction[self.POS_ITEM_ID]
+
+        for seq in item_seq[4:5]:
+            txts = []
+            for id in seq:
+                if id == 0:
+                    break
+                txts.append("\"" + self.item_text_context[id] + "\"")
+            print("\n", ",".join(txts), "\n")
+            print(self.item_text_context[pos_items[4]])
+
+
         if self.loss_type == 'BPR':
             neg_items = interaction[self.NEG_ITEM_ID]
             pos_items_emb = self.item_embedding(pos_items)
