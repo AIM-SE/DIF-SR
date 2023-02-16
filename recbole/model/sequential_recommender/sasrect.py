@@ -81,7 +81,7 @@ class SASRecT(SequentialRecommender):
             cnt = 0
             with open(self.gpt_text) as json_file:
                 chat_map = json.load(json_file)
-            for i, row in range(len(self.item_text_context)):
+            for i in range(len(self.item_text_context)):
                 id = dataset.id2token(dataset.iid_field, [i])[0]
                 if id in chat_map:
                     self.item_text_context[i] = chat_map[id]
