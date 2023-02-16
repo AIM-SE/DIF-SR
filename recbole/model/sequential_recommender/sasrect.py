@@ -242,14 +242,14 @@ class SASRecT(SequentialRecommender):
         seq_output = self.forward(item_seq, item_seq_len, text_embs)
         pos_items = interaction[self.POS_ITEM_ID]
 
-        for seq in item_seq[4:5]:
-            txts = []
-            for id in seq:
-                if id == 0:
-                    break
-                txts.append("\"" + self.item_text_context[id] + "\"")
-            print("\n", ",".join(txts), "\n")
-            print(self.item_text_context[pos_items[4]])
+        # for seq in item_seq[4:5]:
+        #     txts = []
+        #     for id in seq:
+        #         if id == 0:
+        #             break
+        #         txts.append("\"" + self.item_text_context[id] + "\"")
+        #     print("\n", ",".join(txts), "\n")
+        #     print(self.item_text_context[pos_items[4]])
 
 
         if self.loss_type == 'BPR':
