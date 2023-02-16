@@ -75,6 +75,18 @@ class SASRecT(SequentialRecommender):
         self.text_field = config['text_field']
         self.item_text = dataset.item_feat[self.text_field]
         self.item_text_context = dataset.id2token(self.text_field, self.item_text).tolist()
+        if self.gpt_text != "":
+            import json
+            cnt = 0
+            with open('chat.txt') as json_file:
+                chat_map = json.load(json_file)
+            for i, row in range(len(self.item_text_context)):
+                id = dataset.id2token(dataset.iid_field, [i])[0]
+                if id in chat_map:
+                    self.item_text_context[i] = chat_map[id]
+                    cnt += 1
+            print("Total loaded gpt text", cnt)
+
         self.text_n_heads = 20
 
         self.logger.info("Start to calculate text")
