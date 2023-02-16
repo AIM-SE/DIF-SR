@@ -75,10 +75,11 @@ class SASRecT(SequentialRecommender):
         self.text_field = config['text_field']
         self.item_text = dataset.item_feat[self.text_field]
         self.item_text_context = dataset.id2token(self.text_field, self.item_text).tolist()
+        self.gpt_text = config['gpt_text']
         if self.gpt_text != "":
             import json
             cnt = 0
-            with open('chat.txt') as json_file:
+            with open(self.gpt_text) as json_file:
                 chat_map = json.load(json_file)
             for i, row in range(len(self.item_text_context)):
                 id = dataset.id2token(dataset.iid_field, [i])[0]
