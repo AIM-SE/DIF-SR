@@ -252,8 +252,6 @@ class SASRecT(SequentialRecommender):
     def calculate_loss(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
-        text_embs = self.reduce_dim_linear(self.text_embs)
-        seq_output = self.forward(item_seq, item_seq_len, text_embs)
         pos_items = interaction[self.POS_ITEM_ID]
 
         if self.text_print > 0:
@@ -263,9 +261,11 @@ class SASRecT(SequentialRecommender):
                     if id == 0:
                         break
                     txts.append("\"" + self.item_text_context[id] + "\"")
-                print("\n Items", ",".join(txts), "\n")
-                print("\n Label", self.item_text_context[pos_items[i]])
+                print("\n Items", ",".join(txts))
+                print("\n Label", "\"" + self.item_text_context[pos_items[i]] + "\"" )
 
+        text_embs = self.reduce_dim_linear(self.text_embs)
+        seq_output = self.forward(item_seq, item_seq_len, text_embs)
 
         if self.loss_type == 'BPR':
             neg_items = interaction[self.NEG_ITEM_ID]
