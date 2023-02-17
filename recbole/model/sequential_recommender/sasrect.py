@@ -74,6 +74,7 @@ class SASRecT(SequentialRecommender):
         self.logger.info("Start to load text data")
         self.text_field = config['text_field']
         self.item_text = dataset.item_feat[self.text_field]
+        self.text_print = config['text_print']
         self.item_text_context = dataset.id2token(self.text_field, self.item_text).tolist()
         self.gpt_text = config['gpt_text']
         if self.gpt_text != "":
@@ -255,14 +256,15 @@ class SASRecT(SequentialRecommender):
         seq_output = self.forward(item_seq, item_seq_len, text_embs)
         pos_items = interaction[self.POS_ITEM_ID]
 
-        # for seq in item_seq[4:5]:
-        #     txts = []
-        #     for id in seq:
-        #         if id == 0:
-        #             break
-        #         txts.append("\"" + self.item_text_context[id] + "\"")
-        #     print("\n", ",".join(txts), "\n")
-        #     print(self.item_text_context[pos_items[4]])
+        if self.text_print > 0:
+            for i, seq in enumerate(item_seq[5:5+self.text_print]):
+                txts = []
+                for id in seq:
+                    if id == 0:
+                        break
+                    txts.append("\"" + self.item_text_context[id] + "\"")
+                print("\n Items", ",".join(txts), "\n")
+                print("\n Label", self.item_text_context[pos_items[i]])
 
 
         if self.loss_type == 'BPR':
