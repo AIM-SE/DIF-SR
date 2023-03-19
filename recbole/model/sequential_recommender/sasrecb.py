@@ -21,6 +21,7 @@ from torch import nn
 from recbole.model.abstract_recommender import SequentialRecommender
 from recbole.model.layers import TransformerEncoder
 from recbole.model.loss import BPRLoss
+from sklearn.metrics import f1_score
 
 
 class SASRecB(SequentialRecommender):
@@ -67,6 +68,7 @@ class SASRecB(SequentialRecommender):
         self.dropout = nn.Dropout(self.hidden_dropout_prob)
 
         self.bloss = nn.BCELoss()
+        self.sigmoid = nn.Sigmoid()
         self.item_bias_layer = nn.Linear(self.hidden_size, 1)
 
         if self.loss_type == 'BPR':
@@ -78,6 +80,8 @@ class SASRecB(SequentialRecommender):
 
         # parameters initialization
         self.apply(self._init_weights)
+        self.epoch = 0
+        self.last_bloss = 0
 
     def calcualte_bias_label(self):
         bias = []
@@ -143,7 +147,25 @@ class SASRecB(SequentialRecommender):
         output = self.gather_indexes(output, item_seq_len - 1)
         return output  # [B H]
 
+    def run_per_epoch(self, epoch):
+        if self.epoch % 2 == 0:
+            for param in self.parameters():
+                param.requires_grad = True
+            self.item_bias_layer.requires_grad = False
+        else:
+            for param in self.parameters():
+                param.requires_grad = False
+            self.item_bias_layer.requires_grad = True
+
+    def run_before_epoch(self, epoch):
+        self.epoch = epoch
+
     def calculate_loss(self, interaction):
+        if self.epoch % 2 == 1:
+            bloss = self.calculate_bias_loss()
+            self.last_bloss = bloss.item()
+            return torch.tensor(0.0), bloss
+
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
         seq_output = self.forward(item_seq, item_seq_len)
@@ -160,11 +182,11 @@ class SASRecB(SequentialRecommender):
             test_item_emb = self.item_embedding.weight
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
-            return loss
+            return loss-self.last_bloss, torch.tensor(0.0)
 
     def calculate_bias_loss(self):
         test_item_emb = self.item_embedding.weight
-        bias_score = self.item_bias_layer(test_item_emb)
+        bias_score = self.sigmoid(self.item_bias_layer(test_item_emb))
         bias_loss = self.bloss(bias_score, self.bias_label)
         return bias_loss
 
@@ -176,6 +198,9 @@ class SASRecB(SequentialRecommender):
         seq_output = self.forward(item_seq, item_seq_len)
         test_item_emb = self.item_embedding(test_item)
         scores = torch.mul(seq_output, test_item_emb).sum(dim=1)  # [B]
+        bias_score = self.sigmoid(self.item_bias_layer(test_item_emb))
+        report = f1_score(bias_score, self.bias_label)
+        print("bias score", report)
         return scores
 
     def full_sort_predict(self, interaction):

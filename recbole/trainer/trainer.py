@@ -217,6 +217,7 @@ class Trainer(AbstractTrainer):
                 desc=set_color(f"Train {epoch_idx:>5}", 'pink'),
             ) if show_progress else train_data
         )
+        self.model.run_before_epoch(epoch_idx)
         for batch_idx, interaction in enumerate(iter_data):
             interaction = interaction.to(self.device)
             ## @Juyong Jiang

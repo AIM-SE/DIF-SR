@@ -85,6 +85,9 @@ class AbstractRecommender(nn.Module):
     def run_per_epoch(self, epoch):
         return None
 
+    def run_before_epoch(self, epoch):
+        return None
+
     def __str__(self):
         """
         Model prints with number of trainable parameters
