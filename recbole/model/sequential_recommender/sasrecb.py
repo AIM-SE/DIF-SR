@@ -188,7 +188,7 @@ class SASRecB(SequentialRecommender):
     def calculate_bias_loss(self):
         test_item_emb = self.item_embedding.weight
         bias_score = self.sigmoid(self.item_bias_layer(test_item_emb))
-        bias_loss = self.bloss(bias_score, torch.tensor(self.bias_label))
+        bias_loss = self.bloss(bias_score.squeeze(), torch.tensor(self.bias_label).float())
         return bias_loss
 
 
