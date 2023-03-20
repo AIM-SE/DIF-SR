@@ -149,6 +149,10 @@ class SASRecB(SequentialRecommender):
         return output  # [B H]
 
     def run_per_epoch(self, epoch):
+        return None
+
+    def run_before_epoch(self, epoch):
+        self.epoch = epoch
         if self.epoch % 2 == 0:
             for param in self.parameters():
                 param.requires_grad = True
@@ -158,13 +162,11 @@ class SASRecB(SequentialRecommender):
                 param.requires_grad = False
             self.item_bias_layer.requires_grad = True
 
-    def run_before_epoch(self, epoch):
-        self.epoch = epoch
-
     def calculate_loss(self, interaction):
         if self.epoch % 2 == 1:
             bloss = self.calculate_bias_loss()
-            self.last_bloss = bloss.item()
+            self.last_bloss = bloss.cpu().clone().detach()
+            print("last bias loss", self.last_bloss)
             return torch.tensor(0.0), bloss
 
         item_seq = interaction[self.ITEM_SEQ]
@@ -199,10 +201,12 @@ class SASRecB(SequentialRecommender):
         seq_output = self.forward(item_seq, item_seq_len)
         test_item_emb = self.item_embedding(test_item)
         scores = torch.mul(seq_output, test_item_emb).sum(dim=1)  # [B]
+        self.predict_bias()
+        return scores
+    def predict_bias(self):
         bias_score = self.sigmoid(self.item_bias_layer(test_item_emb))
         report = f1_score(bias_score, self.bias_label)
         print("bias score", report)
-        return scores
 
     def full_sort_predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]
@@ -210,4 +214,5 @@ class SASRecB(SequentialRecommender):
         seq_output = self.forward(item_seq, item_seq_len)
         test_items_emb = self.item_embedding.weight
         scores = torch.matmul(seq_output, test_items_emb.transpose(0, 1))  # [B n_items]
+        self.predict_bias()
         return scores
